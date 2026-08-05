@@ -1,0 +1,43 @@
+name: 每日论文更新
+
+on:
+  schedule:
+    # 每天 UTC 0:00 运行（北京时间早8点）
+    - cron: '0 0 * * *'
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: 安装依赖
+        run: pip install requests
+        
+      - name: 运行抓取脚本
+        run: python src/fetch_papers.py
+        
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: 安装 Astro 依赖
+        run: npm install
+        
+      - name: 构建网站
+        run: npm run build
+        
+      - name: 部署到 GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
