@@ -1,25 +1,23 @@
-﻿import requests
+import requests
 import json
 import os
 from datetime import datetime, timedelta
 import xml.etree.ElementTree as ET
 
 # ============================================
-# 閰嶇疆鍖猴細浣犲彲浠ュ湪杩欓噷淇敼鏈熷垔鍜屽叧閿瘝
+# Configuration
 # ============================================
 
-# 浣犳兂杩借釜鐨勬湡鍒婂垪琛紙PubMed 鏈熷垔鍚嶇缉鍐欙級
 JOURNALS = [
     "Nature",
     "Science",
-    "Proc Natl Acad Sci U S A",    # PNAS
-    "Sci Adv",                      # Science Advances
-    "Nat Commun",                   # Nature Communications
-    "Mol Biol Evol",                # Molecular Biology and Evolution
+    "Proc Natl Acad Sci U S A",
+    "Sci Adv",
+    "Nat Commun",
+    "Mol Biol Evol",
     "Gene",
 ]
 
-# 鐢熷懡绉戝鏂瑰悜鍏抽敭璇嶏紙鍦ㄦ爣棰?鎽樿涓尮閰嶏級
 KEYWORDS = [
     "virus", "viral", "virology",
     "microbiology", "microbial", "microbiome", "bacteria", "bacterial",
@@ -33,21 +31,18 @@ KEYWORDS = [
     "ecology", "ecological",
 ]
 
-# 鑾峰彇鏈€杩戝嚑澶╃殑璁烘枃
 DAYS_BACK = 3
 
-# DeepSeek API 閰嶇疆锛堢敤浜庣炕璇戞爣棰橈級
-DEEPSEEK_API_KEY = "浣犵殑API瀵嗛挜"
+DEEPSEEK_API_KEY = ""
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 
 
 # ============================================
-# 缈昏瘧鍔熻兘
+# Translation
 # ============================================
 
 def translate_title(title):
-    """璋冪敤 DeepSeek 缈昏瘧鑻辨枃鏍囬涓轰腑鏂?""
-    if not DEEPSEEK_API_KEY or DEEPSEEK_API_KEY == "浣犵殑API瀵嗛挜":
+    if not DEEPSEEK_API_KEY:
         return ""
 
     try:
@@ -60,7 +55,7 @@ def translate_title(title):
             "messages": [
                 {
                     "role": "system",
-                    "content": "浣犳槸鐢熷懡绉戝棰嗗煙涓撲笟缈昏瘧锛岃灏嗕互涓嬭鏂囨爣棰樼炕璇戞垚绠€娲佸噯纭殑涓枃锛屽彧杩斿洖璇戞枃锛屼笉瑕佷换浣曡В閲娿€?
+                    "content": "You are a professional life science translator. Translate the following paper title into concise and accurate Chinese. Return only the translation, no explanation."
                 },
                 {
                     "role": "user",
@@ -74,28 +69,26 @@ def translate_title(title):
         result = resp.json()
         return result["choices"][0]["message"]["content"].strip()
     except Exception as e:
-        print(f"    缈昏瘧澶辫触: {e}")
+        print(f"    Translation failed: {e}")
         return ""
 
 
 # ============================================
-# 鏍稿績閫昏緫锛氫粠 PubMed 鑾峰彇璁烘枃
+# Core: Fetch papers from PubMed
 # ============================================
 
 def fetch_papers():
     all_papers = []
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 
-    # 璁＄畻鏃ユ湡鑼冨洿
     end_date = datetime.now()
     start_date = end_date - timedelta(days=DAYS_BACK)
     start_str = start_date.strftime("%Y/%m/%d")
     end_str = end_date.strftime("%Y/%m/%d")
 
     for journal in JOURNALS:
-        print(f"姝ｅ湪鑾峰彇 {journal} 鐨勮鏂?..")
+        print(f"Fetching {journal}...")
 
-        # 鎼滅储锛氭湡鍒婂悕 + 鏃ユ湡鑼冨洿
         search_query = f'"{journal}"[Journal]'
         search_url = (
             f"{base_url}/esearch.fcgi"
@@ -110,10 +103,10 @@ def fetch_papers():
             id_list = search_data.get("esearchresult", {}).get("idlist", [])
 
             if not id_list:
-                print(f"  {journal}: 娌℃湁鏂拌鏂?)
+                print(f"  {journal}: No new papers")
                 continue
 
-            print(f"  {journal}: 鎵惧埌 {len(id_list)} 绡囷紝姝ｅ湪鑾峰彇璇︽儏...")
+            print(f"  {journal}: Found {len(id_list)} papers, fetching details...")
 
             ids = ",".join(id_list)
             fetch_url = f"{base_url}/efetch.fcgi?db=pubmed&id={ids}&retmode=xml"
@@ -123,35 +116,32 @@ def fetch_papers():
 
             papers = parse_pubmed_xml(resp.text, journal)
             filtered = filter_by_keywords(papers)
-            print(f"  {journal}: 绛涢€夊悗鍓╀綑 {len(filtered)} 绡囩敓鍛界瀛︾浉鍏宠鏂?)
+            print(f"  {journal}: {len(filtered)} papers after filtering")
 
             all_papers.extend(filtered)
 
         except Exception as e:
-            print(f"  {journal}: 鑾峰彇澶辫触 - {e}")
+            print(f"  {journal}: Failed - {e}")
 
     return all_papers
 
 
 def parse_pubmed_xml(xml_text, journal):
-    """瑙ｆ瀽 PubMed XML锛屾彁鍙栧叧閿俊鎭?""
+    """Parse PubMed XML and extract key information"""
     papers = []
     root = ET.fromstring(xml_text)
 
     for article in root.findall(".//PubmedArticle"):
         try:
-            # 鏍囬
             title_elem = article.find(".//ArticleTitle")
             title = title_elem.text if title_elem is not None else ""
             if not title:
                 continue
 
-            # 缈昏瘧鏍囬
             title_cn = translate_title(title)
             if title_cn:
-                print(f"    鉁?{title[:60]}... 鈫?{title_cn[:40]}...")
+                print(f"    OK {title[:60]}... -> {title_cn[:40]}...")
 
-            # 鎽樿
             abstract_parts = []
             for abs_elem in article.findall(".//AbstractText"):
                 label = abs_elem.get("Label", "")
@@ -159,17 +149,15 @@ def parse_pubmed_xml(xml_text, journal):
                 abstract_parts.append(f"{label}: {text}" if label else text)
             abstract = " ".join(abstract_parts)
 
-            # DOI
             doi = ""
             for eid in article.findall(".//ELocationID"):
                 if eid.get("EIdType") == "doi":
                     doi = eid.text or ""
 
-            # PMID
             pmid_elem = article.find(".//PMID")
             pmid = pmid_elem.text if pmid_elem is not None else ""
 
-            # 鏃ユ湡 - 浠?PubMed 璁板綍涓彁鍙栫湡瀹炲彂琛ㄦ棩鏈?            pub_date = ""
+            pub_date = ""
             date_elem = article.find(".//PubDate")
             if date_elem is not None:
                 year = date_elem.find("Year")
@@ -178,19 +166,17 @@ def parse_pubmed_xml(xml_text, journal):
                 y = year.text if year is not None else ""
                 m = month.text if month is not None else "01"
                 d = day.text if day is not None else "01"
-                # 鏈堜唤鍙兘鏄嫳鏂囩缉鍐欙紝杞暟瀛?                try:
+                try:
                     m = str(datetime.strptime(m, "%b").month).zfill(2)
                 except:
                     pass
                 pub_date = f"{y}-{m.zfill(2) if len(m) < 2 else m}-{d.zfill(2) if len(d) < 2 else d}"
 
-            # URL
             if doi:
                 url = f"https://doi.org/{doi}"
             else:
                 url = f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/"
 
-            # 浣滆€咃紙鍙栧墠涓夛級
             authors = []
             for author in article.findall(".//Author"):
                 last = author.find("./LastName")
@@ -223,7 +209,6 @@ def parse_pubmed_xml(xml_text, journal):
 
 
 def filter_by_keywords(papers):
-    """鏍规嵁鍏抽敭璇嶇瓫閫夌敓鍛界瀛︾浉鍏宠鏂?""
     filtered = []
     for paper in papers:
         text = (paper["title"] + " " + paper["abstract"]).lower()
@@ -236,7 +221,6 @@ def filter_by_keywords(papers):
 
 
 def get_category(keyword):
-    """鏍规嵁鍏抽敭璇嶈繑鍥炲垎绫?""
     kw = keyword.lower()
     if kw in ["virus", "viral", "virology"]:
         return "virology"
@@ -262,26 +246,27 @@ def get_category(keyword):
 
 
 # ============================================
-# 涓荤▼搴忥細杩愯骞朵繚瀛樼粨鏋?# ============================================
+# Main
+# ============================================
 
 if __name__ == "__main__":
     print("=" * 50)
-    print("寮€濮嬭幏鍙栫敓鍛界瀛﹂鍩熸渶鏂拌鏂?..")
-    print(f"鏃ユ湡鑼冨洿锛氭渶杩?{DAYS_BACK} 澶?)
+    print("Fetching latest life science papers...")
+    print(f"Date range: last {DAYS_BACK} days")
     print("=" * 50)
 
     papers = fetch_papers()
 
-    # 鍘婚噸锛堟寜 PMID锛?    seen = set()
+    seen = set()
     unique_papers = []
     for p in papers:
         if p["pmid"] not in seen:
             seen.add(p["pmid"])
             unique_papers.append(p)
 
-    print(f"\n鍏辫幏鍙?{len(unique_papers)} 绡囩敓鍛界瀛︾浉鍏宠鏂?)
+    print(f"\nTotal: {len(unique_papers)} papers")
 
-    # 鍔犺浇宸叉湁璁烘枃锛屽悎骞?    output_dir = os.path.join(os.path.dirname(__file__), "data")
+    output_dir = os.path.join(os.path.dirname(__file__), "data")
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, "papers.json")
 
@@ -293,23 +278,21 @@ if __name__ == "__main__":
         except:
             pass
 
-    # 鍚堝苟锛氱敤 PMID 鍘婚噸锛屾柊璁烘枃浼樺厛
     existing_pmids = {p.get("pmid", "") for p in existing_papers}
     for p in unique_papers:
         if p["pmid"] not in existing_pmids:
             existing_papers.insert(0, p)
             existing_pmids.add(p["pmid"])
 
-    # 鏈€澶氫繚鐣?00绡?    existing_papers = existing_papers[:500]
+    existing_papers = existing_papers[:500]
 
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(existing_papers, f, ensure_ascii=False, indent=2)
 
-    print(f"宸蹭繚瀛樺埌 {output_path}锛堟€昏 {len(existing_papers)} 绡囷級")
+    print(f"Saved to {output_path} (total {len(existing_papers)} papers)")
 
-    # 閲嶆柊鏋勫缓 Astro 缃戠珯
-    print("\n姝ｅ湪閲嶆柊鏋勫缓缃戠珯...")
+    print("\nBuilding site...")
     project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.chdir(project_dir)
     os.system("npm run build")
-    print("鏋勫缓瀹屾垚锛乨ist/ 鏂囦欢澶逛腑鐨勫唴瀹瑰彲浠ラ儴缃插埌鏈嶅姟鍣ㄣ€?)
+    print("Build complete!")
