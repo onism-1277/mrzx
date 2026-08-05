@@ -2,9 +2,8 @@ name: 每日论文更新
 
 on:
   schedule:
-    # 每天 UTC 0:00 运行（北京时间早8点）
     - cron: '0 0 * * *'
-  workflow_dispatch:  # 允许手动触发
+  workflow_dispatch:
 
 jobs:
   update:
@@ -14,12 +13,18 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
         
+      - name: 调试 - 查看文件结构
+        run: |
+          pwd
+          ls -la
+          ls -la src/
+        
       - name: 安装 Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           
-      - name: 安装依赖
+      - name: 安装 Python 依赖
         run: pip install requests
         
       - name: 运行抓取脚本
