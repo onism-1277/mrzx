@@ -1,0 +1,118 @@
+﻿---
+import papers from '../data/papers.json';
+
+const pageTitle = "姣忔湀鐢熷懡绉戝璁烘枃姹囨€?;
+
+// 鏈熷垔鍚嶇О鏄犲皠
+const journalFullNames: Record<string, string> = {
+  "Nature": "Nature",
+  "Science": "Science",
+  "Proc Natl Acad Sci U S A": "PNAS",
+  "Sci Adv": "Science Advances",
+  "Nat Commun": "Nature Communications",
+  "Mol Biol Evol": "Molecular Biology and Evolution",
+  "Gene": "GENE",
+};
+
+function getJournalName(abbr: string): string {
+  return journalFullNames[abbr] || abbr;
+}
+
+// 璁＄畻鏈湀鑼冨洿锛?鍙峰埌鏈堟湯锛?const now = new Date();
+const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+monthEnd.setHours(23, 59, 59, 999);
+
+const monthStartStr = monthStart.toISOString().slice(0, 10);
+const monthEndStr = monthEnd.toISOString().slice(0, 10);
+
+const monthPapers = papers.filter((p) => p.date >= monthStartStr && p.date <= monthEndStr);
+
+// 鎸夋湡鍒婂垎缁?const papersByJournal: Record<string, typeof monthPapers> = {};
+monthPapers.forEach((paper) => {
+  if (!papersByJournal[paper.journal]) {
+    papersByJournal[paper.journal] = [];
+  }
+  papersByJournal[paper.journal].push(paper);
+});
+
+const journals = Object.keys(papersByJournal).sort();
+const totalCount = monthPapers.length;
+---
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f5f5; color: #333; }
+      .container { max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }
+      h1 { text-align: center; margin-bottom: 0.5rem; font-size: 1.8rem; }
+      .tabs { display: flex; justify-content: center; gap: 0.5rem; margin: 1.5rem 0; flex-wrap: wrap; }
+      .tab { padding: 0.5rem 1.2rem; border: 2px solid #4a90d9; border-radius: 20px; cursor: pointer; background: white; color: #4a90d9; font-size: 0.9rem; text-decoration: none; }
+      .tab:hover, .tab.active { background: #4a90d9; color: white; }
+      .journal-section { margin-bottom: 1rem; }
+      .journal-header { background: white; border-radius: 8px; padding: 1rem 1.5rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+      .journal-header:hover { background: #e8f0fe; }
+      .journal-name { font-size: 1.1rem; font-weight: bold; color: #2c3e50; }
+      .journal-count { color: #888; font-size: 0.9rem; }
+      .journal-arrow { transition: transform 0.3s; font-size: 1.2rem; color: #4a90d9; }
+      .journal-section.open .journal-arrow { transform: rotate(180deg); }
+      .papers-list { display: none; padding: 0.5rem 0; }
+      .journal-section.open .papers-list { display: block; }
+      .paper { background: white; border-radius: 8px; padding: 1.2rem 1.5rem; margin-bottom: 0.5rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #4a90d9; }
+      .paper-title { font-size: 1rem; margin-bottom: 0.3rem; }
+      .paper-title a { color: #2c3e50; text-decoration: none; }
+      .paper-title a:hover { text-decoration: underline; color: #4a90d9; }
+      .paper-title-cn { font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; font-style: italic; }
+      .paper-meta { font-size: 0.8rem; color: #999; margin-bottom: 0.3rem; }
+      .category-tag { display: inline-block; background: #e8f0fe; color: #4a90d9; padding: 1px 8px; border-radius: 10px; font-size: 0.75rem; }
+      .abstract { font-size: 0.85rem; color: #555; line-height: 1.5; margin-top: 0.3rem; }
+      .date-tag { color: #888; font-size: 0.8rem; }
+      .summary { text-align: center; color: #666; margin-bottom: 1.5rem; font-size: 0.95rem; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>馃搱 {pageTitle}</h1>
+      <p class="summary">鍏?{totalCount} 绡囪鏂?路 {monthStartStr} 锝?{monthEndStr}</p>
+
+      <div class="tabs">
+        <a href="/" class="tab">馃搮 姣忔棩</a>
+        <a href="/weekly" class="tab">馃搳 姣忓懆</a>
+        <a href="/monthly" class="tab active">馃搱 姣忔湀 ({totalCount})</a>
+      </div>
+
+      {journals.map((journal) => (
+        <div class="journal-section" onclick="this.classList.toggle('open')">
+          <div class="journal-header">
+            <span class="journal-name">馃摪 {getJournalName(journal)}</span>
+            <span>
+              <span class="journal-count">{papersByJournal[journal].length} 绡?/span>
+              <span class="journal-arrow">鈻?/span>
+            </span>
+          </div>
+          <div class="papers-list">
+            {papersByJournal[journal].map((paper) => (
+              <article class="paper">
+                <h3 class="paper-title">
+                  <a href={paper.url} target="_blank" rel="noopener">{paper.title}</a>
+                </h3>
+                {paper.title_cn && <p class="paper-title-cn">馃嚚馃嚦 {paper.title_cn}</p>}
+                <div class="paper-meta">
+                  <span class="category-tag">{paper.category || '鐢熷懡绉戝'}</span>
+                  <span class="date-tag"> 路 {paper.date}</span>
+                  <span> 路 {paper.authors}</span>
+                </div>
+                {paper.abstract && <p class="abstract">{paper.abstract.slice(0, 200)}{paper.abstract.length > 200 ? '...' : ''}</p>}
+              </article>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </body>
+</html>
