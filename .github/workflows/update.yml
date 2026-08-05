@@ -16,8 +16,12 @@ jobs:
       - name: 调试 - 查看文件结构
         run: |
           pwd
+          echo "=== 根目录 ==="
           ls -la
-          ls -la src/
+          echo "=== src目录 ==="
+          ls -la src/ || echo "src目录不存在"
+          echo "=== 查找fetch_papers ==="
+          find . -name "fetch_papers.py" || echo "找不到文件"
         
       - name: 安装 Python
         uses: actions/setup-python@v5
