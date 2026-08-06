@@ -80,7 +80,7 @@ const totalCount = dailyPapers.length;
   <body>
     <div class="container">
       <h1>馃搫 {pageTitle}</h1>
-      <p class="summary">{todayStr} 路 鍏?{totalCount} 绡囪鏂?/p>
+      <p class="summary">{todayStr} · 共 {totalCount} 篇</p>
 
       <div class="tabs">
         <a href="/" class="tab active">馃搮 姣忔棩 ({totalCount})</a>
@@ -100,8 +100,8 @@ const totalCount = dailyPapers.length;
             <div class="journal-header" onclick="this.parentElement.classList.toggle('open')">
               <span class="journal-name">馃摪 {getJournalName(journal)}</span>
               <span>
-                <span class="journal-count">{papersByJournal[journal].length} 绡?/span>
-                <span class="journal-arrow">鈻?/span>
+                <span class="journal-count">{papersByJournal[journal].length}</span>
+                <span class="journal-arrow">▾</span>
               </span>
             </div>
             <div class="papers-list">
