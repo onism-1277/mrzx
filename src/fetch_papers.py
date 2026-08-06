@@ -33,41 +33,12 @@ KEYWORDS = [
 
 DAYS_BACK = 3
 
-DEEPSEEK_API_KEY = "sk-8010d470a8134a44bbf13f83cf38ef89"
-DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
-
 
 def translate_title(title):
-    if not DEEPSEEK_API_KEY:
-        return ""
     try:
-        headers = {
-            "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
-            "Content-Type": "application/json"
-        }
-        data = {
-            "model": "deepseek-chat",
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "You are a professional life science translator. Translate the following paper title into concise and accurate Chinese. Return only the translation, no explanation."
-                },
-                {
-                    "role": "user",
-                    "content": title
-                }
-            ],
-            "max_tokens": 100,
-            "temperature": 0.3
-        }
-        resp = requests.post(DEEPSEEK_API_URL, headers=headers, json=data, timeout=15)
-        result = resp.json()
-        print(f"    DEBUG: {result}")
-        if "choices" in result and len(result["choices"]) > 0:
-         return result["choices"][0]["message"]["content"].strip()
-        else:
-         print(f"    API response: {result}")
-        return ""
+        from deep_translator import GoogleTranslator
+        result = GoogleTranslator(source='en', target='zh-CN').translate(title)
+        return result
     except Exception as e:
         print(f"Translation failed: {e}")
         return ""
