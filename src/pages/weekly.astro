@@ -2,6 +2,7 @@
 import papers from '../data/papers.json';
 
 const pageTitle = "Weekly Life Science Papers";
+const basePath = Astro.base || '/';
 
 const journalFullNames: Record<string, string> = {
   "Nature": "Nature",
@@ -84,9 +85,9 @@ const totalCount = weekPapers.length;
       <p class="summary">{totalCount} papers / {weekStart} ~ {weekEnd}</p>
 
       <div class="tabs">
-        <a href="/" class="tab">Daily</a>
-        <a href="/weekly" class="tab active">Weekly ({totalCount})</a>
-        <a href="/monthly" class="tab">Monthly</a>
+        <a href={basePath} class="tab">Daily</a>
+        <a href={`${basePath}weekly`} class="tab active">Weekly ({totalCount})</a>
+        <a href={`${basePath}monthly`} class="tab">Monthly</a>
       </div>
 
       {journals.map((journal) => (
