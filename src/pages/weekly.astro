@@ -34,7 +34,8 @@ const weekEnd = sunday.toISOString().slice(0, 10);
 
 const weekPapers = papers.filter((p) => p.date >= weekStart && p.date <= weekEnd);
 
-// 鎸夋湡鍒婂垎缁?const papersByJournal: Record<string, typeof weekPapers> = {};
+// 按期刊分组
+const papersByJournal: Record<string, typeof weekPapers> = {};
 weekPapers.forEach((paper) => {
   if (!papersByJournal[paper.journal]) {
     papersByJournal[paper.journal] = [];
