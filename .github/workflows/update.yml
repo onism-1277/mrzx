@@ -10,18 +10,18 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: 检出代码
+      - name: 检出代�?
         uses: actions/checkout@v4
         
       - name: 调试 - 查看文件结构
         run: |
           pwd
-          echo "=== 根目录 ==="
+          echo "=== 根目�?==="
           ls -la
           echo "=== src目录 ==="
-          ls -la src/ || echo "src目录不存在"
+          ls -la src/ || echo "src目录不存�?
           echo "=== 查找fetch_papers ==="
-          find . -name "fetch_papers.py" || echo "找不到文件"
+          find . -name "fetch_papers.py" || echo "找不到文�?
         
       - name: 安装 Python
         uses: actions/setup-python@v5
@@ -41,11 +41,14 @@ jobs:
           
       - name: 安装 Astro 依赖
         run: npm ci --no-optional
+
+      - name: Install rolldown WASI binding
+        run: npm install @rolldown/binding-wasm32-wasi --no-save
         
       - name: 构建网站
         run: npm run build
         
-      - name: 部署到 GitHub Pages
+      - name: 部署�?GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

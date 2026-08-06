@@ -32,6 +32,9 @@ jobs:
       - name: Install Node dependencies
         run: npm ci --no-optional
 
+      - name: Install rolldown WASI binding
+        run: npm install @rolldown/binding-wasm32-wasi --no-save
+
       - name: Build site
         run: npm run build
 
