@@ -18,7 +18,8 @@ function getJournalName(abbr: string): string {
   return journalFullNames[abbr] || abbr;
 }
 
-// 璁＄畻鏈湀鑼冨洿锛?鍙峰埌鏈堟湯锛?const now = new Date();
+// 计算本月日期范围
+const now = new Date();
 const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 monthEnd.setHours(23, 59, 59, 999);
