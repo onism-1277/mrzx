@@ -62,7 +62,12 @@ def translate_title(title):
         }
         resp = requests.post(DEEPSEEK_API_URL, headers=headers, json=data, timeout=15)
         result = resp.json()
-        return result["choices"][0]["message"]["content"].strip()
+        print(f"    DEBUG: {result}")
+        if "choices" in result and len(result["choices"]) > 0:
+         return result["choices"][0]["message"]["content"].strip()
+        else:
+         print(f"    API response: {result}")
+        return ""
     except Exception as e:
         print(f"Translation failed: {e}")
         return ""
