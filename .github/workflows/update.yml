@@ -40,7 +40,7 @@ jobs:
           node-version: '20'
           
       - name: 安装 Astro 依赖
-        run: npm install
+        run: npm ci --no-optional
         
       - name: 构建网站
         run: npm run build

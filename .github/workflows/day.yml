@@ -30,7 +30,7 @@ jobs:
           node-version: '22'
 
       - name: Install Node dependencies
-        run: npm install
+        run: npm ci --no-optional
 
       - name: Build site
         run: npm run build
