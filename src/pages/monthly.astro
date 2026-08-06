@@ -29,7 +29,8 @@ const monthEndStr = monthEnd.toISOString().slice(0, 10);
 
 const monthPapers = papers.filter((p) => p.date >= monthStartStr && p.date <= monthEndStr);
 
-// 鎸夋湡鍒婂垎缁?const papersByJournal: Record<string, typeof monthPapers> = {};
+// 按期刊分组
+const papersByJournal: Record<string, typeof monthPapers> = {};
 monthPapers.forEach((paper) => {
   if (!papersByJournal[paper.journal]) {
     papersByJournal[paper.journal] = [];
