@@ -37,14 +37,9 @@ DEEPSEEK_API_KEY = ""
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 
 
-# ============================================
-# Translation
-# ============================================
-
 def translate_title(title):
     if not DEEPSEEK_API_KEY:
         return ""
-
     try:
         headers = {
             "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
@@ -69,18 +64,13 @@ def translate_title(title):
         result = resp.json()
         return result["choices"][0]["message"]["content"].strip()
     except Exception as e:
-        print(f"    Translation failed: {e}")
+        print(f"Translation failed: {e}")
         return ""
 
-
-# ============================================
-# Core: Fetch papers from PubMed
-# ============================================
 
 def fetch_papers():
     all_papers = []
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
-
     end_date = datetime.now()
     start_date = end_date - timedelta(days=DAYS_BACK)
     start_str = start_date.strftime("%Y/%m/%d")
@@ -88,75 +78,58 @@ def fetch_papers():
 
     for journal in JOURNALS:
         print(f"Fetching {journal}...")
-
         search_query = f'"{journal}"[Journal]'
         search_url = (
             f"{base_url}/esearch.fcgi"
             f"?db=pubmed&term={search_query}&retmax=50&retmode=json"
             f"&mindate={start_str}&maxdate={end_str}&datetype=pdat"
         )
-
         try:
             resp = requests.get(search_url, timeout=30)
             resp.raise_for_status()
             search_data = resp.json()
             id_list = search_data.get("esearchresult", {}).get("idlist", [])
-
             if not id_list:
                 print(f"  {journal}: No new papers")
                 continue
-
             print(f"  {journal}: Found {len(id_list)} papers, fetching details...")
-
             ids = ",".join(id_list)
             fetch_url = f"{base_url}/efetch.fcgi?db=pubmed&id={ids}&retmode=xml"
-
             resp = requests.get(fetch_url, timeout=30)
             resp.raise_for_status()
-
             papers = parse_pubmed_xml(resp.text, journal)
             filtered = filter_by_keywords(papers)
             print(f"  {journal}: {len(filtered)} papers after filtering")
-
             all_papers.extend(filtered)
-
         except Exception as e:
             print(f"  {journal}: Failed - {e}")
-
     return all_papers
 
 
 def parse_pubmed_xml(xml_text, journal):
-    """Parse PubMed XML and extract key information"""
     papers = []
     root = ET.fromstring(xml_text)
-
     for article in root.findall(".//PubmedArticle"):
         try:
             title_elem = article.find(".//ArticleTitle")
             title = title_elem.text if title_elem is not None else ""
             if not title:
                 continue
-
             title_cn = translate_title(title)
             if title_cn:
                 print(f"    OK {title[:60]}... -> {title_cn[:40]}...")
-
             abstract_parts = []
             for abs_elem in article.findall(".//AbstractText"):
                 label = abs_elem.get("Label", "")
                 text = abs_elem.text or ""
                 abstract_parts.append(f"{label}: {text}" if label else text)
             abstract = " ".join(abstract_parts)
-
             doi = ""
             for eid in article.findall(".//ELocationID"):
                 if eid.get("EIdType") == "doi":
                     doi = eid.text or ""
-
             pmid_elem = article.find(".//PMID")
             pmid = pmid_elem.text if pmid_elem is not None else ""
-
             pub_date = ""
             date_elem = article.find(".//PubDate")
             if date_elem is not None:
@@ -171,12 +144,10 @@ def parse_pubmed_xml(xml_text, journal):
                 except:
                     pass
                 pub_date = f"{y}-{m.zfill(2) if len(m) < 2 else m}-{d.zfill(2) if len(d) < 2 else d}"
-
             if doi:
                 url = f"https://doi.org/{doi}"
             else:
                 url = f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/"
-
             authors = []
             for author in article.findall(".//Author"):
                 last = author.find("./LastName")
@@ -189,7 +160,6 @@ def parse_pubmed_xml(xml_text, journal):
             author_str = ", ".join(authors[:3])
             if len(authors) > 3:
                 author_str += " et al."
-
             papers.append({
                 "title": title.strip(),
                 "title_cn": title_cn,
@@ -201,10 +171,8 @@ def parse_pubmed_xml(xml_text, journal):
                 "url": url,
                 "pmid": pmid,
             })
-
         except Exception:
             continue
-
     return papers
 
 
@@ -245,31 +213,22 @@ def get_category(keyword):
     return "other"
 
 
-# ============================================
-# Main
-# ============================================
-
 if __name__ == "__main__":
     print("=" * 50)
     print("Fetching latest life science papers...")
     print(f"Date range: last {DAYS_BACK} days")
     print("=" * 50)
-
     papers = fetch_papers()
-
     seen = set()
     unique_papers = []
     for p in papers:
         if p["pmid"] not in seen:
             seen.add(p["pmid"])
             unique_papers.append(p)
-
     print(f"\nTotal: {len(unique_papers)} papers")
-
     output_dir = os.path.join(os.path.dirname(__file__), "data")
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, "papers.json")
-
     existing_papers = []
     if os.path.exists(output_path):
         try:
@@ -277,20 +236,15 @@ if __name__ == "__main__":
                 existing_papers = json.load(f)
         except:
             pass
-
     existing_pmids = {p.get("pmid", "") for p in existing_papers}
     for p in unique_papers:
         if p["pmid"] not in existing_pmids:
             existing_papers.insert(0, p)
             existing_pmids.add(p["pmid"])
-
     existing_papers = existing_papers[:500]
-
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(existing_papers, f, ensure_ascii=False, indent=2)
-
     print(f"Saved to {output_path} (total {len(existing_papers)} papers)")
-
     print("\nBuilding site...")
     project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.chdir(project_dir)
