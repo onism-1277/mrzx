@@ -37,11 +37,19 @@ DAYS_BACK = 3
 def translate_title(title):
     try:
         from deep_translator import GoogleTranslator
-        result = GoogleTranslator(source='en', target='zh-CN').translate(title)
-        return result
     except Exception as e:
-        print(f"Translation failed: {e}")
+        print(f"Translation library unavailable: {type(e).__name__}: {e}")
         return ""
+
+    for attempt in range(1, 4):
+        try:
+            result = GoogleTranslator(source='en', target='zh-CN').translate(title)
+            if result and result.strip():
+                return result.strip()
+            print(f"Translation returned empty result on attempt {attempt} for title: {title}")
+        except Exception as e:
+            print(f"Translation failed on attempt {attempt}: {type(e).__name__}: {e}")
+    return ""
 
 
 def fetch_papers():
@@ -210,14 +218,37 @@ if __name__ == "__main__":
         try:
             with open(output_path, "r", encoding="utf-8") as f:
                 existing_papers = json.load(f)
-        except:
-            pass
-    existing_pmids = {p.get("pmid", "") for p in existing_papers}
+        except Exception as e:
+            print(f"Warning: failed to read existing papers.json: {type(e).__name__}: {e}")
+
+    existing_by_pmid = {p.get("pmid", ""): p for p in existing_papers if p.get("pmid")}
+    merged_papers = []
     for p in unique_papers:
-        if p["pmid"] not in existing_pmids:
-            existing_papers.insert(0, p)
-            existing_pmids.add(p["pmid"])
-    existing_papers = existing_papers[:500]
+        pmid = p.get("pmid")
+        if not pmid:
+            merged_papers.append(p)
+            continue
+
+        existing = existing_by_pmid.get(pmid)
+        if existing:
+            # Prefer the newly fetched record `p`, but carry forward an existing
+            # `title_cn` when the new one is empty.
+            if not p.get("title_cn") and existing.get("title_cn"):
+                p["title_cn"] = existing["title_cn"]
+            # Update existing with all fields from p (p wins), then use that
+            existing.update(p)
+            merged_papers.append(existing)
+            del existing_by_pmid[pmid]
+        else:
+            merged_papers.append(p)
+
+    # Append any remaining old records that weren't updated
+    merged_papers.extend(existing_by_pmid.values())
+    # Diagnostics: count translations before writing
+    translated_count = sum(1 for x in merged_papers if x.get("title_cn"))
+    print(f"Writing {len(merged_papers)} papers, translated titles: {translated_count}")
+
+    existing_papers = merged_papers[:500]
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(existing_papers, f, ensure_ascii=False, indent=2)
     print(f"Saved to {output_path} (total {len(existing_papers)} papers)")
