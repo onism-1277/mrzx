@@ -23,7 +23,8 @@ const today = new Date();
 const todayStr = today.toISOString().slice(0, 10);
 const dailyPapers = papers.filter((p) => p.date === todayStr);
 
-// 鎸夋湡鍒婂垎缁?const papersByJournal: Record<string, typeof dailyPapers> = {};
+// 按期刊分组
+const papersByJournal: Record<string, typeof dailyPapers> = {};
 dailyPapers.forEach((paper) => {
   if (!papersByJournal[paper.journal]) {
     papersByJournal[paper.journal] = [];
