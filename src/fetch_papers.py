@@ -33,7 +33,7 @@ KEYWORDS = [
 
 DAYS_BACK = 3
 
-DEEPSEEK_API_KEY = ""
+DEEPSEEK_API_KEY = "sk-8010d470a8134a44bbf13f83cf38ef89"
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 
 
