@@ -1,9 +1,8 @@
-﻿---
+---
 import papers from '../data/papers.json';
 
-const pageTitle = "姣忔棩鐢熷懡绉戝璁烘枃閫熻";
+const pageTitle = "每日生命科学论文速览";
 
-// 鏈熷垔鍚嶇О鏄犲皠
 const journalFullNames: Record<string, string> = {
   "Nature": "Nature",
   "Science": "Science",
@@ -18,12 +17,10 @@ function getJournalName(abbr: string): string {
   return journalFullNames[abbr] || abbr;
 }
 
-// 绛涢€変粖澶╃殑璁烘枃
 const today = new Date();
 const todayStr = today.toISOString().slice(0, 10);
 const dailyPapers = papers.filter((p) => p.date === todayStr);
 
-// 按期刊分组
 const papersByJournal: Record<string, typeof dailyPapers> = {};
 dailyPapers.forEach((paper) => {
   if (!papersByJournal[paper.journal]) {
@@ -47,11 +44,9 @@ const totalCount = dailyPapers.length;
       body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f5f5; color: #333; }
       .container { max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }
       h1 { text-align: center; margin-bottom: 0.5rem; font-size: 1.8rem; }
-
       .tabs { display: flex; justify-content: center; gap: 0.5rem; margin: 1.5rem 0; flex-wrap: wrap; }
       .tab { padding: 0.5rem 1.2rem; border: 2px solid #4a90d9; border-radius: 20px; cursor: pointer; background: white; color: #4a90d9; font-size: 0.9rem; transition: all 0.2s; text-decoration: none; }
       .tab:hover, .tab.active { background: #4a90d9; color: white; }
-
       .journal-section { margin-bottom: 1rem; }
       .journal-header { background: white; border-radius: 8px; padding: 1rem 1.5rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: background 0.2s; }
       .journal-header:hover { background: #e8f0fe; }
@@ -59,10 +54,8 @@ const totalCount = dailyPapers.length;
       .journal-count { color: #888; font-size: 0.9rem; }
       .journal-arrow { transition: transform 0.3s; font-size: 1.2rem; color: #4a90d9; }
       .journal-section.open .journal-arrow { transform: rotate(180deg); }
-
       .papers-list { display: none; padding: 0.5rem 0; }
       .journal-section.open .papers-list { display: block; }
-
       .paper { background: white; border-radius: 8px; padding: 1.2rem 1.5rem; margin-bottom: 0.5rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #4a90d9; }
       .paper-title { font-size: 1rem; margin-bottom: 0.3rem; }
       .paper-title a { color: #2c3e50; text-decoration: none; }
@@ -72,7 +65,6 @@ const totalCount = dailyPapers.length;
       .category-tag { display: inline-block; background: #e8f0fe; color: #4a90d9; padding: 1px 8px; border-radius: 10px; font-size: 0.75rem; }
       .abstract { font-size: 0.85rem; color: #555; line-height: 1.5; margin-top: 0.3rem; }
       .date-tag { color: #888; font-size: 0.8rem; }
-
       .empty-state { text-align: center; padding: 3rem 1rem; color: #999; }
       .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
       .summary { text-align: center; color: #888; margin-bottom: 0.5rem; font-size: 0.95rem; }
@@ -80,29 +72,28 @@ const totalCount = dailyPapers.length;
   </head>
   <body>
     <div class="container">
-      <h1>馃搫 {pageTitle}</h1>
-      <p class="summary">{todayStr} · 共 {totalCount} 篇</p>
+      <h1>{pageTitle}</h1>
+      <p class="summary">{todayStr} / {totalCount} papers</p>
 
       <div class="tabs">
-        <a href="/" class="tab active">馃搮 姣忔棩 ({totalCount})</a>
-        <a href="/weekly" class="tab">馃搳 姣忓懆</a>
-        <a href="/monthly" class="tab">馃搱 姣忔湀</a>
+        <a href="/" class="tab active">Daily ({totalCount})</a>
+        <a href="/weekly" class="tab">Weekly</a>
+        <a href="/monthly" class="tab">Monthly</a>
       </div>
 
       {journals.length === 0 ? (
         <div class="empty-state">
-          <div class="icon">馃摥</div>
-          <p>当前暂无收录的最新论文，请稍后重试。</p>
-          <p style="font-size:0.85rem;margin-top:0.5rem;">数据可能有延迟，建议稍后刷新页面查看更新。</p>
+          <div class="icon">No papers</div>
+          <p>No papers today, waiting for update...</p>
         </div>
       ) : (
         journals.map((journal) => (
-          <div class="journal-section" id={`journal-${journal.replace(/\s+/g, '-')}`}>
+          <div class="journal-section">
             <div class="journal-header" onclick="this.parentElement.classList.toggle('open')">
-              <span class="journal-name">馃摪 {getJournalName(journal)}</span>
+              <span class="journal-name">{getJournalName(journal)}</span>
               <span>
-                <span class="journal-count">{papersByJournal[journal].length}</span>
-                <span class="journal-arrow">▾</span>
+                <span class="journal-count">{papersByJournal[journal].length} papers</span>
+                <span class="journal-arrow">&#9660;</span>
               </span>
             </div>
             <div class="papers-list">
@@ -111,11 +102,11 @@ const totalCount = dailyPapers.length;
                   <h3 class="paper-title">
                     <a href={paper.url} target="_blank" rel="noopener">{paper.title}</a>
                   </h3>
-                  {paper.title_cn && <p class="paper-title-cn">馃嚚馃嚦 {paper.title_cn}</p>}
+                  {paper.title_cn && <p class="paper-title-cn">{paper.title_cn}</p>}
                   <div class="paper-meta">
-                    <span class="category-tag">{paper.category || '鐢熷懡绉戝'}</span>
-                    <span class="date-tag"> 路 {paper.date}</span>
-                    <span> 路 {paper.authors}</span>
+                    <span class="category-tag">{paper.category || 'Life Science'}</span>
+                    <span class="date-tag"> / {paper.date}</span>
+                    <span> / {paper.authors}</span>
                   </div>
                   {paper.abstract && <p class="abstract">{paper.abstract.slice(0, 200)}{paper.abstract.length > 200 ? '...' : ''}</p>}
                 </article>

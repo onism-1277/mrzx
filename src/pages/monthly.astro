@@ -1,9 +1,8 @@
 ﻿---
 import papers from '../data/papers.json';
 
-const pageTitle = "每月论文速递";
+const pageTitle = "Monthly Life Science Papers";
 
-// 鏈熷垔鍚嶇О鏄犲皠
 const journalFullNames: Record<string, string> = {
   "Nature": "Nature",
   "Science": "Science",
@@ -18,18 +17,15 @@ function getJournalName(abbr: string): string {
   return journalFullNames[abbr] || abbr;
 }
 
-// 计算本月日期范围
 const now = new Date();
 const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-monthEnd.setHours(23, 59, 59, 999);
 
 const monthStartStr = monthStart.toISOString().slice(0, 10);
 const monthEndStr = monthEnd.toISOString().slice(0, 10);
 
 const monthPapers = papers.filter((p) => p.date >= monthStartStr && p.date <= monthEndStr);
 
-// 按期刊分组
 const papersByJournal: Record<string, typeof monthPapers> = {};
 monthPapers.forEach((paper) => {
   if (!papersByJournal[paper.journal]) {
@@ -79,22 +75,22 @@ const totalCount = monthPapers.length;
   </head>
   <body>
     <div class="container">
-      <h1>馃搱 {pageTitle}</h1>
-      <p class="summary">鍏?{totalCount} 绡囪鏂?路 {monthStartStr} 锝?{monthEndStr}</p>
+      <h1>{pageTitle}</h1>
+      <p class="summary">{totalCount} papers / {monthStartStr} ~ {monthEndStr}</p>
 
       <div class="tabs">
-        <a href="/" class="tab">馃搮 姣忔棩</a>
-        <a href="/weekly" class="tab">馃搳 姣忓懆</a>
-        <a href="/monthly" class="tab active">馃搱 姣忔湀 ({totalCount})</a>
+        <a href="/" class="tab">Daily</a>
+        <a href="/weekly" class="tab">Weekly</a>
+        <a href="/monthly" class="tab active">Monthly ({totalCount})</a>
       </div>
 
       {journals.map((journal) => (
         <div class="journal-section" onclick="this.classList.toggle('open')">
           <div class="journal-header">
-            <span class="journal-name">馃摪 {getJournalName(journal)}</span>
+            <span class="journal-name">{getJournalName(journal)}</span>
             <span>
-              <span class="journal-count">{papersByJournal[journal].length}</span>
-              <span class="journal-arrow">▾</span>
+              <span class="journal-count">{papersByJournal[journal].length} papers</span>
+              <span class="journal-arrow">&#9660;</span>
             </span>
           </div>
           <div class="papers-list">
@@ -103,11 +99,11 @@ const totalCount = monthPapers.length;
                 <h3 class="paper-title">
                   <a href={paper.url} target="_blank" rel="noopener">{paper.title}</a>
                 </h3>
-                {paper.title_cn && <p class="paper-title-cn">馃嚚馃嚦 {paper.title_cn}</p>}
+                {paper.title_cn && <p class="paper-title-cn">{paper.title_cn}</p>}
                 <div class="paper-meta">
-                  <span class="category-tag">{paper.category || '鐢熷懡绉戝'}</span>
-                  <span class="date-tag"> 路 {paper.date}</span>
-                  <span> 路 {paper.authors}</span>
+                  <span class="category-tag">{paper.category || 'Life Science'}</span>
+                  <span class="date-tag"> / {paper.date}</span>
+                  <span> / {paper.authors}</span>
                 </div>
                 {paper.abstract && <p class="abstract">{paper.abstract.slice(0, 200)}{paper.abstract.length > 200 ? '...' : ''}</p>}
               </article>
