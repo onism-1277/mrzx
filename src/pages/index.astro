@@ -74,6 +74,7 @@ const totalCount = dailyPapers.length;
       .hot-tag { display: inline-block; background: #e74c3c; color: white; padding: 1px 6px; border-radius: 4px; font-size: 0.7rem; margin-left: 0.5rem; vertical-align: middle; }
       .paper-title a:hover { text-decoration: underline; color: #4a90d9; }
       .paper-title-cn { font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; font-style: italic; }
+      .paper-summary { font-size: 0.85rem; color: #2e7d32; margin-bottom: 0.4rem; line-height: 1.5; }
       .paper-meta { font-size: 0.8rem; color: #999; margin-bottom: 0.3rem; }
       .category-tag { display: inline-block; background: #e8f0fe; color: #4a90d9; padding: 1px 8px; border-radius: 10px; font-size: 0.75rem; }
       .abstract { font-size: 0.85rem; color: #555; line-height: 1.5; margin-top: 0.3rem; }
@@ -117,6 +118,7 @@ const totalCount = dailyPapers.length;
                    {paper.is_hot && <span class="hot-tag">HOT</span>}
                   </h3>
                   {paper.title_cn && <p class="paper-title-cn">{paper.title_cn}</p>}
+                  {paper.title_cn_summary && <p class="paper-summary">📝 {paper.title_cn_summary}</p>}
                   <div class="paper-meta">
                     <span class="category-tag">{paper.category || 'Life Science'}</span>
                     <span class="date-tag"> / {paper.date}</span>
