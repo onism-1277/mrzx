@@ -276,7 +276,7 @@ if __name__ == "__main__":
     print("Fetching latest life science papers...")
     print(f"Date range: last {DAYS_BACK} days")
     print("=" * 50)
-        papers = fetch_papers()
+    papers = fetch_papers()
     rss_papers = fetch_rss_papers()
     papers.extend(rss_papers)
     seen = set()
