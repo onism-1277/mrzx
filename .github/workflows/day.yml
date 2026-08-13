@@ -23,11 +23,13 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Python dependencies
-        run: pip install requests deep-translator
+      - name: Install Python dependencie
+        run: pip install requests google-generativeai
 
-      - name: Run fetch script
+        - name: Run fetch script
         run: python src/fetch_papers.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
