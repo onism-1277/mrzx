@@ -38,16 +38,36 @@ RSS_FEEDS = [
 ]
 
 KEYWORDS = [
-    "virus", "viral", "virology",
-    "microbiology", "microbial", "microbiome", "bacteria", "bacterial",
-    "zoology", "animal", "wildlife",
+    # 动物学
+    "zoology", "animal", "wildlife", "mammal", "avian", "bird",
+    "fauna", "vertebrate", "migration", "migratory",
+    "hibernation", "home range", "reproduction", "reproductive",
+    # 生态学
+    "ecology", "ecological", "ecosystem",
+    "population", "habitat", "environmental DNA", "eDNA",
+    # 遗传学
+    "genomics", "genetics", "genome",
+    # 进化
     "evolution", "evolutionary", "phylogenetic",
-    "genomics", "genetics", "gene", "genome",
-    "immunology", "immune",
-    "neuroscience", "neural",
-    "cell biology", "molecular biology",
-    "biochemistry", "protein",
-    "ecology", "ecological",
+    # 种群遗传学
+    "population genetics", "gene flow", "genetic drift",
+    # 生物信息学
+    "bioinformatics", "computational biology", "sequence analysis", "MaxEnt",
+    # 保护生物学
+    "conservation", "biodiversity", "endangered species",
+    "threatened species", "wildlife management", "red list", "IUCN",
+    "extinction risk", "poach", "poaching", "wildlife trade",
+    "non-invasive sampling", "noninvasive sampling",
+    # 行为学
+    "behavior", "behaviour", "ethology",
+    # 古生物学
+    "paleontology", "fossil",
+    # 生物地理学
+    "biogeography", "species distribution",
+    # 分类学
+    "taxonomy", "classification",
+    # 生物技术
+    "biotechnology", "genetic engineering", "CRISPR",
 ]
 
 DAYS_BACK = 3
@@ -81,7 +101,15 @@ def fetch_papers():
 
     for journal in JOURNALS:
         print(f"Fetching {journal}...")
-        search_query = f'"{journal}"[Journal]'
+        search_query = (
+            f'"{journal}"[Journal] AND ('
+            f'zoology[MeSH] OR ecology[MeSH] OR genetics[MeSH] OR '
+            f'evolution[MeSH] OR genetics, population[MeSH] OR '
+            f'computational biology[MeSH] OR conservation of natural resources[MeSH] OR '
+            f'behavior, animal[MeSH] OR paleontology[MeSH] OR biogeography[MeSH] OR '
+            f'classification[MeSH] OR biotechnology[MeSH]'
+            f')'
+        )
         search_url = (
             f"{base_url}/esearch.fcgi"
             f"?db=pubmed&term={search_query}&retmax=50&retmode=json"
@@ -238,38 +266,55 @@ def filter_by_keywords(papers):
     filtered = []
     for paper in papers:
         text = (paper["title"] + " " + paper["abstract"]).lower()
+        matched_keywords = []
         for kw in KEYWORDS:
             if kw.lower() in text:
-                paper["category"] = get_category(kw)
-                filtered.append(paper)
-                break
+                matched_keywords.append(kw)
+                if len(matched_keywords) >= 3:
+                    break  # 找到3个就够，不必继续
+
+        if len(matched_keywords) >= 1:
+            paper["category"] = get_category(matched_keywords[0])
+            paper["match_count"] = len(matched_keywords)
+            paper["is_hot"] = len(matched_keywords) >= 3  # 3个以上标记为热点
+            filtered.append(paper)
     return filtered
 
 
 def get_category(keyword):
     kw = keyword.lower()
-    if kw in ["virus", "viral", "virology"]:
-        return "virology"
-    elif kw in ["microbiology", "microbial", "microbiome", "bacteria", "bacterial"]:
-        return "microbiology"
-    elif kw in ["zoology", "animal", "wildlife"]:
+    if kw in ["zoology", "animal", "wildlife", "mammal", "avian", "bird",
+              "fauna", "vertebrate", "migration", "migratory",
+              "hibernation", "home range", "reproduction", "reproductive"]:
         return "zoology"
+    elif kw in ["ecology", "ecological", "ecosystem", "population",
+                "habitat", "environmental dna", "edna"]:
+        return "ecology"
+    elif kw in ["genomics", "genetics", "genome"]:
+        return "genetics"
     elif kw in ["evolution", "evolutionary", "phylogenetic"]:
         return "evolution"
-    elif kw in ["genomics", "genetics", "gene", "genome"]:
-        return "genetics"
-    elif kw in ["immunology", "immune"]:
-        return "immunology"
-    elif kw in ["neuroscience", "neural"]:
-        return "neuroscience"
-    elif kw in ["cell biology", "molecular biology"]:
-        return "cell biology"
-    elif kw in ["biochemistry", "protein"]:
-        return "biochemistry"
-    elif kw in ["ecology", "ecological"]:
-        return "ecology"
+    elif kw in ["population genetics", "gene flow", "genetic drift"]:
+        return "population genetics"
+    elif kw in ["bioinformatics", "computational biology", "sequence analysis", "maxent"]:
+        return "bioinformatics"
+    elif kw in ["conservation", "biodiversity", "endangered species",
+                "threatened species", "wildlife management", "red list", "iucn",
+                "extinction risk", "poach", "poaching", "wildlife trade",
+                "non-invasive sampling", "noninvasive sampling"]:
+        return "conservation"
+    elif kw in ["behavior", "behaviour", "ethology"]:
+        return "behavior"
+    elif kw in ["paleontology", "fossil"]:
+        return "paleontology"
+    elif kw in ["biogeography", "species distribution"]:
+        return "biogeography"
+    elif kw in ["taxonomy", "classification"]:
+        return "taxonomy"
+    elif kw in ["biotechnology", "genetic engineering", "crispr"]:
+        return "biotechnology"
     return "other"
-
+    
 
 if __name__ == "__main__":
     print("=" * 50)

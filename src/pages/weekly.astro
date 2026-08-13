@@ -80,6 +80,8 @@ const totalCount = weekPapers.length;
       .paper { background: white; border-radius: 8px; padding: 1.2rem 1.5rem; margin-bottom: 0.5rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #4a90d9; }
       .paper-title { font-size: 1rem; margin-bottom: 0.3rem; }
       .paper-title a { color: #2c3e50; text-decoration: none; }
+      .paper-title.hot a { color: #e74c3c; font-weight: bold; }
+      .hot-tag { display: inline-block; background: #e74c3c; color: white; padding: 1px 6px; border-radius: 4px; font-size: 0.7rem; margin-left: 0.5rem; vertical-align: middle; }
       .paper-title a:hover { text-decoration: underline; color: #4a90d9; }
       .paper-title-cn { font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; font-style: italic; }
       .paper-meta { font-size: 0.8rem; color: #999; margin-bottom: 0.3rem; }
@@ -112,8 +114,9 @@ const totalCount = weekPapers.length;
           <div class="papers-list">
             {papersByJournal[journal].map((paper) => (
               <article class="paper">
-                <h3 class="paper-title">
-                  <a href={paper.url} target="_blank" rel="noopener">{paper.title}</a>
+                <h3 class={`paper-title${paper.is_hot ? ' hot' : ''}`}>
+                   <a href={paper.url} target="_blank" rel="noopener">{paper.title}</a>
+                   {paper.is_hot && <span class="hot-tag">HOT</span>}
                 </h3>
                 {paper.title_cn && <p class="paper-title-cn">{paper.title_cn}</p>}
                 <div class="paper-meta">
