@@ -3,6 +3,7 @@ import json
 import os
 from datetime import datetime, timedelta
 import xml.etree.ElementTree as ET
+import re
 
 # ============================================
 # Configuration
@@ -16,6 +17,24 @@ JOURNALS = [
     "Nat Commun",
     "Mol Biol Evol",
     "Gene",
+    "Biol Conserv",
+    "Conserv Biol",
+    "Front Ecol Environ",
+    "J Wildl Manage",
+    "Wildl Monogr",
+    "Eur J Wildl Res",
+    "Wildl Biol",
+    "J Mammal",
+    "J Zool",
+    "Zool Res",
+]
+
+# RSS feeds for Chinese journals
+RSS_FEEDS = [
+    {
+        "name": "野生动物学报",
+        "url": "https://ysdw.nefu.edu.cn/rc-pub/front/rss?periodId=currentIssue&siteId=726",
+    },
 ]
 
 KEYWORDS = [
@@ -88,6 +107,61 @@ def fetch_papers():
         except Exception as e:
             print(f"  {journal}: Failed - {e}")
     return all_papers
+
+def fetch_rss_papers():
+    papers = []
+    for feed in RSS_FEEDS:
+        print(f"Fetching {feed['name']} via RSS...")
+        try:
+            resp = requests.get(feed["url"], timeout=30)
+            resp.raise_for_status()
+            papers.extend(parse_rss(resp.text, feed["name"]))
+            print(f"  {feed['name']}: {len(papers)} papers")
+        except Exception as e:
+            print(f"  {feed['name']}: Failed - {e}")
+    return papers
+
+
+def parse_rss(xml_text, journal_name):
+    papers = []
+    root = ET.fromstring(xml_text)
+    for item in root.findall(".//item"):
+        try:
+            title = item.find("title").text if item.find("title") is not None else ""
+            link = item.find("link").text if item.find("link") is not None else ""
+            pub_date_elem = item.find("pubDate")
+            pub_date = ""
+            if pub_date_elem is not None and pub_date_elem.text:
+                pub_date = pub_date_elem.text.strip()
+                try:
+                    pub_date = datetime.strptime(pub_date, "%a, %d %b %Y %H:%M:%S %Z").strftime("%Y-%m-%d")
+                except:
+                    try:
+                        pub_date = datetime.strptime(pub_date[:11], "%a, %d %b %Y").strftime("%Y-%m-%d")
+                    except:
+                        pub_date = ""
+
+            description = item.find("description").text if item.find("description") is not None else ""
+            abstract = re.sub(r'<[^>]+>', '', description)[:500]
+
+            title_cn = translate_title(title)
+
+            papers.append({
+                "title": title.strip(),
+                "title_cn": title_cn,
+                "journal": journal_name,
+                "date": pub_date,
+                "authors": "",
+                "abstract": abstract,
+                "doi": "",
+                "url": link,
+                "pmid": f"ysdw-{title[:30]}",
+            })
+
+        except Exception:
+            continue
+
+    return papers
 
 
 def parse_pubmed_xml(xml_text, journal):
@@ -202,7 +276,9 @@ if __name__ == "__main__":
     print("Fetching latest life science papers...")
     print(f"Date range: last {DAYS_BACK} days")
     print("=" * 50)
-    papers = fetch_papers()
+        papers = fetch_papers()
+    rss_papers = fetch_rss_papers()
+    papers.extend(rss_papers)
     seen = set()
     unique_papers = []
     for p in papers:
