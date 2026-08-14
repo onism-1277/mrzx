@@ -75,21 +75,19 @@ DAYS_BACK = 3
 
 def translate_title(title):
     try:
-        from deep_translator import GoogleTranslator
+        import google.generativeai as genai
+        api_key = os.environ.get("GEMINI_API_KEY", "")
+        if not api_key:
+            print("No GEMINI_API_KEY found")
+            return ""
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        prompt = f"Translate the following paper title to Chinese. Return only the translation, no explanation:\n\n{title}"
+        response = model.generate_content(prompt)
+        return response.text.strip()
     except Exception as e:
-        print(f"Translation library unavailable: {type(e).__name__}: {e}")
+        print(f"Translation failed: {e}")
         return ""
-
-    for attempt in range(1, 4):
-        try:
-            result = GoogleTranslator(source='en', target='zh-CN').translate(title)
-            if result and result.strip():
-                return result.strip()
-            print(f"Translation returned empty result on attempt {attempt} for title: {title}")
-        except Exception as e:
-            print(f"Translation failed on attempt {attempt}: {type(e).__name__}: {e}")
-    return ""
-
 
 def fetch_papers():
     all_papers = []
@@ -281,6 +279,142 @@ def filter_by_keywords(papers):
     return filtered
 
 
+def ai_filter_papers(papers):
+    """Use Gemini AI to filter papers based on wildlife relevance"""
+    filtered = []
+    for paper in papers:
+        try:
+            import google.generativeai as genai
+            api_key = os.environ.get("GEMINI_API_KEY", "")
+            if not api_key:
+                print("  No GEMINI_API_KEY, falling back to keyword filter")
+                return filter_by_keywords(papers)
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel('gemini-1.5-flash')
+
+            prompt = f"""You are a wildlife biology expert. Determine if the following paper is relevant to WILD VERTEBRATE research.
+
+Topics that ARE relevant:
+- Basic ecology of wild vertebrates (mammals, birds, reptiles, amphibians, fish)
+- Conservation of wild vertebrate species
+- Human-wildlife interactions and conflict
+- Wildlife diseases and health
+- Genetics and evolution of wild vertebrates
+- Technical methods applicable to wildlife research
+- Wildlife policy, management, and planning
+
+Topics that are NOT relevant:
+- Plant biology or botany
+- Domestic animals (livestock, pets) unless directly related to wildlife
+- Human medicine (unless zoonotic disease from wildlife)
+- Pure molecular biology without wildlife application
+- Marine invertebrates
+
+Paper Title: {paper['title']}
+Paper Abstract: {paper['abstract'][:500]}
+
+Answer with ONLY:
+1. First line: YES or NO (is it relevant to wild vertebrate research?)
+2. If YES, second line: one short Chinese sentence summarizing the paper's main finding
+3. If YES, third line: one category from: ecology, conservation, human-wildlife, disease-health, genetics-evolution, methods, policy-management
+
+Example:
+YES
+本研究利用GPS追踪揭示了东北虎的家域大小和活动节律。
+ecology
+"""
+
+            response = model.generate_content(prompt)
+            result = response.text.strip()
+            lines = result.split('\n')
+
+            is_relevant = lines[0].strip().upper() == "YES" if lines else False
+
+            if is_relevant:
+                paper["title_cn_summary"] = lines[1].strip() if len(lines) > 1 else ""
+                paper["ai_category"] = lines[2].strip() if len(lines) > 2 else "ecology"
+                filtered.append(paper)
+                print(f"    AI KEEP: {paper['title'][:60]}...")
+
+        except Exception as e:
+            print(f"    AI filter failed for {paper['title'][:40]}: {e}")
+            # 如果 AI 失败，回退到关键词筛选
+            text = (paper["title"] + " " + paper["abstract"]).lower()
+            if any(kw in text for kw in KEYWORDS):
+                paper["ai_category"] = "other"
+                filtered.append(paper)
+
+    return filtered
+
+
+def ai_filter_papers(papers):
+    """Use Gemini AI to filter papers based on wildlife relevance"""
+    filtered = []
+    for paper in papers:
+        try:
+            import google.generativeai as genai
+            api_key = os.environ.get("GEMINI_API_KEY", "")
+            if not api_key:
+                print("  No GEMINI_API_KEY, falling back to keyword filter")
+                return filter_by_keywords(papers)
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel('gemini-1.5-flash')
+
+            prompt = f"""You are a wildlife biology expert. Determine if the following paper is relevant to WILD VERTEBRATE research.
+
+Topics that ARE relevant:
+- Basic ecology of wild vertebrates (mammals, birds, reptiles, amphibians, fish)
+- Conservation of wild vertebrate species
+- Human-wildlife interactions and conflict
+- Wildlife diseases and health
+- Genetics and evolution of wild vertebrates
+- Technical methods applicable to wildlife research
+- Wildlife policy, management, and planning
+
+Topics that are NOT relevant:
+- Plant biology or botany
+- Domestic animals (livestock, pets) unless directly related to wildlife
+- Human medicine (unless zoonotic disease from wildlife)
+- Pure molecular biology without wildlife application
+- Marine invertebrates
+
+Paper Title: {paper['title']}
+Paper Abstract: {paper['abstract'][:500]}
+
+Answer with ONLY:
+1. First line: YES or NO (is it relevant to wild vertebrate research?)
+2. If YES, second line: one short Chinese sentence summarizing the paper's main finding
+3. If YES, third line: one category from: ecology, conservation, human-wildlife, disease-health, genetics-evolution, methods, policy-management
+
+Example:
+YES
+本研究利用GPS追踪揭示了东北虎的家域大小和活动节律。
+ecology
+"""
+
+            response = model.generate_content(prompt)
+            result = response.text.strip()
+            lines = result.split('\n')
+
+            is_relevant = lines[0].strip().upper() == "YES" if lines else False
+
+            if is_relevant:
+                paper["title_cn_summary"] = lines[1].strip() if len(lines) > 1 else ""
+                paper["ai_category"] = lines[2].strip() if len(lines) > 2 else "ecology"
+                filtered.append(paper)
+                print(f"    AI KEEP: {paper['title'][:60]}...")
+
+        except Exception as e:
+            print(f"    AI filter failed for {paper['title'][:40]}: {e}")
+            # 如果 AI 失败，回退到关键词筛选
+            text = (paper["title"] + " " + paper["abstract"]).lower()
+            if any(kw in text for kw in KEYWORDS):
+                paper["ai_category"] = "other"
+                filtered.append(paper)
+
+    return filtered
+
+
 def get_category(keyword):
     kw = keyword.lower()
     if kw in ["zoology", "animal", "wildlife", "mammal", "avian", "bird",
@@ -314,7 +448,7 @@ def get_category(keyword):
     elif kw in ["biotechnology", "genetic engineering", "crispr"]:
         return "biotechnology"
     return "other"
-    
+
 
 if __name__ == "__main__":
     print("=" * 50)
@@ -324,6 +458,13 @@ if __name__ == "__main__":
     papers = fetch_papers()
     rss_papers = fetch_rss_papers()
     papers.extend(rss_papers)
+
+    # 用 AI 筛选（如果失败自动回退到关键词筛选）
+    print("\nAI filtering papers...")
+    papers = ai_filter_papers(papers)
+    # 用 AI 筛选（如果失败自动回退到关键词筛选）
+    print("\nAI filtering papers...")
+    papers = ai_filter_papers(papers)
     seen = set()
     unique_papers = []
     for p in papers:
