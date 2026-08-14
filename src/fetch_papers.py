@@ -29,7 +29,6 @@ JOURNALS = [
     "Zool Res",
 ]
 
-# RSS feeds for Chinese journals
 RSS_FEEDS = [
     {
         "name": "野生动物学报",
@@ -38,35 +37,23 @@ RSS_FEEDS = [
 ]
 
 KEYWORDS = [
-    # 动物学
     "zoology", "animal", "wildlife", "mammal", "avian", "bird",
     "fauna", "vertebrate", "migration", "migratory",
     "hibernation", "home range", "reproduction", "reproductive",
-    # 生态学
     "ecology", "ecological", "ecosystem",
     "population", "habitat", "environmental DNA", "eDNA",
-    # 遗传学
     "genomics", "genetics", "genome",
-    # 进化
     "evolution", "evolutionary", "phylogenetic",
-    # 种群遗传学
     "population genetics", "gene flow", "genetic drift",
-    # 生物信息学
     "bioinformatics", "computational biology", "sequence analysis", "MaxEnt",
-    # 保护生物学
     "conservation", "biodiversity", "endangered species",
     "threatened species", "wildlife management", "red list", "IUCN",
     "extinction risk", "poach", "poaching", "wildlife trade",
     "non-invasive sampling", "noninvasive sampling",
-    # 行为学
     "behavior", "behaviour", "ethology",
-    # 古生物学
     "paleontology", "fossil",
-    # 生物地理学
     "biogeography", "species distribution",
-    # 分类学
     "taxonomy", "classification",
-    # 生物技术
     "biotechnology", "genetic engineering", "CRISPR",
 ]
 
@@ -78,7 +65,7 @@ def translate_title(title):
         import google.generativeai as genai
         api_key = os.environ.get("GEMINI_API_KEY", "")
         if not api_key:
-            print("No GEMINI_API_KEY found")
+            print("    No GEMINI_API_KEY")
             return ""
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel('gemini-1.5-flash')
@@ -86,8 +73,9 @@ def translate_title(title):
         response = model.generate_content(prompt)
         return response.text.strip()
     except Exception as e:
-        print(f"Translation failed: {e}")
+        print(f"    Translation failed: {e}")
         return ""
+
 
 def fetch_papers():
     all_papers = []
@@ -127,12 +115,12 @@ def fetch_papers():
             resp = requests.get(fetch_url, timeout=30)
             resp.raise_for_status()
             papers = parse_pubmed_xml(resp.text, journal)
-            filtered = filter_by_keywords(papers)
-            print(f"  {journal}: {len(filtered)} papers after filtering")
-            all_papers.extend(filtered)
+            print(f"  {journal}: {len(papers)} papers parsed")
+            all_papers.extend(papers)
         except Exception as e:
             print(f"  {journal}: Failed - {e}")
     return all_papers
+
 
 def fetch_rss_papers():
     papers = []
@@ -141,8 +129,9 @@ def fetch_rss_papers():
         try:
             resp = requests.get(feed["url"], timeout=30)
             resp.raise_for_status()
-            papers.extend(parse_rss(resp.text, feed["name"]))
-            print(f"  {feed['name']}: {len(papers)} papers")
+            feed_papers = parse_rss(resp.text, feed["name"])
+            papers.extend(feed_papers)
+            print(f"  {feed['name']}: {len(feed_papers)} papers")
         except Exception as e:
             print(f"  {feed['name']}: Failed - {e}")
     return papers
@@ -166,15 +155,12 @@ def parse_rss(xml_text, journal_name):
                         pub_date = datetime.strptime(pub_date[:11], "%a, %d %b %Y").strftime("%Y-%m-%d")
                     except:
                         pub_date = ""
-
             description = item.find("description").text if item.find("description") is not None else ""
             abstract = re.sub(r'<[^>]+>', '', description)[:500]
-
-            title_cn = translate_title(title)
-
             papers.append({
                 "title": title.strip(),
-                "title_cn": title_cn,
+                "title_cn": "",
+                "title_cn_summary": "",
                 "journal": journal_name,
                 "date": pub_date,
                 "authors": "",
@@ -182,11 +168,10 @@ def parse_rss(xml_text, journal_name):
                 "doi": "",
                 "url": link,
                 "pmid": f"ysdw-{title[:30]}",
+                "category": "",
             })
-
         except Exception:
             continue
-
     return papers
 
 
@@ -199,21 +184,22 @@ def parse_pubmed_xml(xml_text, journal):
             title = title_elem.text if title_elem is not None else ""
             if not title:
                 continue
-            title_cn = translate_title(title)
-            if title_cn:
-                print(f"    OK {title[:60]}... -> {title_cn[:40]}...")
+
             abstract_parts = []
             for abs_elem in article.findall(".//AbstractText"):
                 label = abs_elem.get("Label", "")
                 text = abs_elem.text or ""
                 abstract_parts.append(f"{label}: {text}" if label else text)
             abstract = " ".join(abstract_parts)
+
             doi = ""
             for eid in article.findall(".//ELocationID"):
                 if eid.get("EIdType") == "doi":
                     doi = eid.text or ""
+
             pmid_elem = article.find(".//PMID")
             pmid = pmid_elem.text if pmid_elem is not None else ""
+
             pub_date = ""
             date_elem = article.find(".//PubDate")
             if date_elem is not None:
@@ -228,10 +214,12 @@ def parse_pubmed_xml(xml_text, journal):
                 except:
                     pass
                 pub_date = f"{y}-{m.zfill(2) if len(m) < 2 else m}-{d.zfill(2) if len(d) < 2 else d}"
+
             if doi:
                 url = f"https://doi.org/{doi}"
             else:
                 url = f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/"
+
             authors = []
             for author in article.findall(".//Author"):
                 last = author.find("./LastName")
@@ -244,9 +232,11 @@ def parse_pubmed_xml(xml_text, journal):
             author_str = ", ".join(authors[:3])
             if len(authors) > 3:
                 author_str += " et al."
+
             papers.append({
                 "title": title.strip(),
-                "title_cn": title_cn,
+                "title_cn": "",
+                "title_cn_summary": "",
                 "journal": journal,
                 "date": pub_date,
                 "authors": author_str,
@@ -254,10 +244,89 @@ def parse_pubmed_xml(xml_text, journal):
                 "doi": doi,
                 "url": url,
                 "pmid": pmid,
+                "category": "",
             })
+
         except Exception:
             continue
+
     return papers
+
+
+def ai_filter_papers(papers):
+    """Use Gemini AI to filter papers and translate titles"""
+    filtered = []
+    for paper in papers:
+        try:
+            import google.generativeai as genai
+            api_key = os.environ.get("GEMINI_API_KEY", "")
+            if not api_key:
+                print("  No GEMINI_API_KEY, falling back to keyword filter")
+                return filter_by_keywords(papers)
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel('gemini-1.5-flash')
+
+            prompt = f"""You are a wildlife biology expert. Determine if the following paper is relevant to WILD VERTEBRATE research.
+
+Topics that ARE relevant:
+- Basic ecology of wild vertebrates (mammals, birds, reptiles, amphibians, fish)
+- Conservation of wild vertebrate species
+- Human-wildlife interactions and conflict
+- Wildlife diseases and health
+- Genetics and evolution of wild vertebrates
+- Technical methods applicable to wildlife research
+- Wildlife policy, management, and planning
+
+Topics that are NOT relevant:
+- Plant biology or botany
+- Domestic animals (livestock, pets) unless directly related to wildlife
+- Human medicine (unless zoonotic disease from wildlife)
+- Pure molecular biology without wildlife application
+- Marine invertebrates
+- Human cancer, human genetics, human disease
+
+Paper Title: {paper['title']}
+Paper Abstract: {paper['abstract'][:500]}
+
+Answer in EXACTLY 4 lines, no extra text:
+Line 1: YES or NO
+Line 2 (if YES): Chinese translation of the paper title
+Line 3 (if YES): one short Chinese sentence summarizing the main finding
+Line 4 (if YES): category from [ecology, conservation, human-wildlife, disease-health, genetics-evolution, methods, policy-management]
+
+Example:
+YES
+本研究利用GPS追踪揭示了东北虎的家域大小和活动节律
+该研究首次量化了东北虎在长白山地区的家域面积和日活动节律
+ecology
+"""
+
+            response = model.generate_content(prompt)
+            result = response.text.strip()
+            lines = [l.strip() for l in result.split('\n') if l.strip()]
+
+            is_relevant = lines[0].upper() == "YES" if lines else False
+
+            if is_relevant:
+                paper["title_cn"] = lines[1] if len(lines) > 1 else ""
+                paper["title_cn_summary"] = lines[2] if len(lines) > 2 else ""
+                paper["category"] = lines[3] if len(lines) > 3 else "ecology"
+                filtered.append(paper)
+                print(f"    AI KEEP: {paper['title'][:50]}... -> {paper['title_cn'][:30]}")
+            else:
+                print(f"    AI SKIP: {paper['title'][:50]}...")
+
+        except Exception as e:
+            print(f"    AI filter failed: {e}")
+            # Fallback to keyword filter
+            text = (paper["title"] + " " + paper["abstract"]).lower()
+            if any(kw.lower() in text for kw in KEYWORDS):
+                paper["category"] = get_category(next(kw for kw in KEYWORDS if kw.lower() in text))
+                paper["title_cn"] = translate_title(paper["title"]) if not paper.get("title_cn") else paper["title_cn"]
+                paper["title_cn_summary"] = ""
+                filtered.append(paper)
+
+    return filtered
 
 
 def filter_by_keywords(papers):
@@ -269,149 +338,12 @@ def filter_by_keywords(papers):
             if kw.lower() in text:
                 matched_keywords.append(kw)
                 if len(matched_keywords) >= 3:
-                    break  # 找到3个就够，不必继续
-
+                    break
         if len(matched_keywords) >= 1:
             paper["category"] = get_category(matched_keywords[0])
             paper["match_count"] = len(matched_keywords)
-            paper["is_hot"] = len(matched_keywords) >= 3  # 3个以上标记为热点
+            paper["is_hot"] = len(matched_keywords) >= 3
             filtered.append(paper)
-    return filtered
-
-
-def ai_filter_papers(papers):
-    """Use Gemini AI to filter papers based on wildlife relevance"""
-    filtered = []
-    for paper in papers:
-        try:
-            import google.generativeai as genai
-            api_key = os.environ.get("GEMINI_API_KEY", "")
-            if not api_key:
-                print("  No GEMINI_API_KEY, falling back to keyword filter")
-                return filter_by_keywords(papers)
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel('gemini-1.5-flash')
-
-            prompt = f"""You are a wildlife biology expert. Determine if the following paper is relevant to WILD VERTEBRATE research.
-
-Topics that ARE relevant:
-- Basic ecology of wild vertebrates (mammals, birds, reptiles, amphibians, fish)
-- Conservation of wild vertebrate species
-- Human-wildlife interactions and conflict
-- Wildlife diseases and health
-- Genetics and evolution of wild vertebrates
-- Technical methods applicable to wildlife research
-- Wildlife policy, management, and planning
-
-Topics that are NOT relevant:
-- Plant biology or botany
-- Domestic animals (livestock, pets) unless directly related to wildlife
-- Human medicine (unless zoonotic disease from wildlife)
-- Pure molecular biology without wildlife application
-- Marine invertebrates
-
-Paper Title: {paper['title']}
-Paper Abstract: {paper['abstract'][:500]}
-
-Answer with ONLY:
-1. First line: YES or NO (is it relevant to wild vertebrate research?)
-2. If YES, second line: one short Chinese sentence summarizing the paper's main finding
-3. If YES, third line: one category from: ecology, conservation, human-wildlife, disease-health, genetics-evolution, methods, policy-management
-
-Example:
-YES
-本研究利用GPS追踪揭示了东北虎的家域大小和活动节律。
-ecology
-"""
-
-            response = model.generate_content(prompt)
-            result = response.text.strip()
-            lines = result.split('\n')
-
-            is_relevant = lines[0].strip().upper() == "YES" if lines else False
-
-            if is_relevant:
-                paper["title_cn_summary"] = lines[1].strip() if len(lines) > 1 else ""
-                paper["ai_category"] = lines[2].strip() if len(lines) > 2 else "ecology"
-                filtered.append(paper)
-                print(f"    AI KEEP: {paper['title'][:60]}...")
-
-        except Exception as e:
-            print(f"    AI filter failed for {paper['title'][:40]}: {e}")
-            # 如果 AI 失败，回退到关键词筛选
-            text = (paper["title"] + " " + paper["abstract"]).lower()
-            if any(kw in text for kw in KEYWORDS):
-                paper["ai_category"] = "other"
-                filtered.append(paper)
-
-    return filtered
-
-
-def ai_filter_papers(papers):
-    """Use Gemini AI to filter papers based on wildlife relevance"""
-    filtered = []
-    for paper in papers:
-        try:
-            import google.generativeai as genai
-            api_key = os.environ.get("GEMINI_API_KEY", "")
-            if not api_key:
-                print("  No GEMINI_API_KEY, falling back to keyword filter")
-                return filter_by_keywords(papers)
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel('gemini-1.5-flash')
-
-            prompt = f"""You are a wildlife biology expert. Determine if the following paper is relevant to WILD VERTEBRATE research.
-
-Topics that ARE relevant:
-- Basic ecology of wild vertebrates (mammals, birds, reptiles, amphibians, fish)
-- Conservation of wild vertebrate species
-- Human-wildlife interactions and conflict
-- Wildlife diseases and health
-- Genetics and evolution of wild vertebrates
-- Technical methods applicable to wildlife research
-- Wildlife policy, management, and planning
-
-Topics that are NOT relevant:
-- Plant biology or botany
-- Domestic animals (livestock, pets) unless directly related to wildlife
-- Human medicine (unless zoonotic disease from wildlife)
-- Pure molecular biology without wildlife application
-- Marine invertebrates
-
-Paper Title: {paper['title']}
-Paper Abstract: {paper['abstract'][:500]}
-
-Answer with ONLY:
-1. First line: YES or NO (is it relevant to wild vertebrate research?)
-2. If YES, second line: one short Chinese sentence summarizing the paper's main finding
-3. If YES, third line: one category from: ecology, conservation, human-wildlife, disease-health, genetics-evolution, methods, policy-management
-
-Example:
-YES
-本研究利用GPS追踪揭示了东北虎的家域大小和活动节律。
-ecology
-"""
-
-            response = model.generate_content(prompt)
-            result = response.text.strip()
-            lines = result.split('\n')
-
-            is_relevant = lines[0].strip().upper() == "YES" if lines else False
-
-            if is_relevant:
-                paper["title_cn_summary"] = lines[1].strip() if len(lines) > 1 else ""
-                paper["ai_category"] = lines[2].strip() if len(lines) > 2 else "ecology"
-                filtered.append(paper)
-                print(f"    AI KEEP: {paper['title'][:60]}...")
-
-        except Exception as e:
-            print(f"    AI filter failed for {paper['title'][:40]}: {e}")
-            # 如果 AI 失败，回退到关键词筛选
-            text = (paper["title"] + " " + paper["abstract"]).lower()
-            if any(kw in text for kw in KEYWORDS):
-                paper["ai_category"] = "other"
-                filtered.append(paper)
-
     return filtered
 
 
@@ -452,68 +384,53 @@ def get_category(keyword):
 
 if __name__ == "__main__":
     print("=" * 50)
-    print("Fetching latest life science papers...")
+    print("Fetching latest wildlife science papers...")
     print(f"Date range: last {DAYS_BACK} days")
     print("=" * 50)
+
     papers = fetch_papers()
     rss_papers = fetch_rss_papers()
     papers.extend(rss_papers)
 
-    # 用 AI 筛选（如果失败自动回退到关键词筛选）
+    print(f"\nTotal raw papers: {len(papers)}")
+
     print("\nAI filtering papers...")
     papers = ai_filter_papers(papers)
-    # 用 AI 筛选（如果失败自动回退到关键词筛选）
-    print("\nAI filtering papers...")
-    papers = ai_filter_papers(papers)
+
     seen = set()
     unique_papers = []
     for p in papers:
         if p["pmid"] not in seen:
             seen.add(p["pmid"])
             unique_papers.append(p)
-    print(f"\nTotal: {len(unique_papers)} papers")
+
+    print(f"\nAfter AI filtering: {len(unique_papers)} papers")
+
     output_dir = os.path.join(os.path.dirname(__file__), "data")
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, "papers.json")
+
     existing_papers = []
     if os.path.exists(output_path):
         try:
             with open(output_path, "r", encoding="utf-8") as f:
                 existing_papers = json.load(f)
-        except Exception as e:
-            print(f"Warning: failed to read existing papers.json: {type(e).__name__}: {e}")
+        except:
+            pass
 
-    existing_by_pmid = {p.get("pmid", ""): p for p in existing_papers if p.get("pmid")}
-    merged_papers = []
+    existing_pmids = {p.get("pmid", "") for p in existing_papers}
     for p in unique_papers:
-        pmid = p.get("pmid")
-        if not pmid:
-            merged_papers.append(p)
-            continue
+        if p["pmid"] not in existing_pmids:
+            existing_papers.insert(0, p)
+            existing_pmids.add(p["pmid"])
 
-        existing = existing_by_pmid.get(pmid)
-        if existing:
-            # Prefer the newly fetched record `p`, but carry forward an existing
-            # `title_cn` when the new one is empty.
-            if not p.get("title_cn") and existing.get("title_cn"):
-                p["title_cn"] = existing["title_cn"]
-            # Update existing with all fields from p (p wins), then use that
-            existing.update(p)
-            merged_papers.append(existing)
-            del existing_by_pmid[pmid]
-        else:
-            merged_papers.append(p)
+    existing_papers = existing_papers[:500]
 
-    # Append any remaining old records that weren't updated
-    merged_papers.extend(existing_by_pmid.values())
-    # Diagnostics: count translations before writing
-    translated_count = sum(1 for x in merged_papers if x.get("title_cn"))
-    print(f"Writing {len(merged_papers)} papers, translated titles: {translated_count}")
-
-    existing_papers = merged_papers[:500]
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(existing_papers, f, ensure_ascii=False, indent=2)
+
     print(f"Saved to {output_path} (total {len(existing_papers)} papers)")
+
     print("\nBuilding site...")
     project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.chdir(project_dir)
