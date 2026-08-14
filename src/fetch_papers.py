@@ -65,38 +65,46 @@ DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 
 
 def translate_title(title):
+    """Translate title using DeepSeek API with retry logic"""
     if not DEEPSEEK_API_KEY:
         return ""
-    try:
-        headers = {
-            "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
-            "Content-Type": "application/json"
-        }
-        data = {
-            "model": "deepseek-chat",
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "You are a professional life science translator. Translate the following paper title into concise and accurate Chinese. Return only the translation, no explanation."
-                },
-                {
-                    "role": "user",
-                    "content": title
-                }
-            ],
-            "max_tokens": 100,
-            "temperature": 0.3
-        }
-        resp = requests.post(DEEPSEEK_API_URL, headers=headers, json=data, timeout=15)
-        result = resp.json()
-        if "choices" in result and len(result["choices"]) > 0:
-            return result["choices"][0]["message"]["content"].strip()
-        else:
-            print(f"    DeepSeek error: {result}")
-            return ""
-    except Exception as e:
-        print(f"    Translation failed: {e}")
-        return ""
+
+    headers = {
+        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "model": "deepseek-chat",
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are a professional life science translator. Translate the following paper title into concise and accurate Chinese. Return only the translation, no explanation."
+            },
+            {
+                "role": "user",
+                "content": title
+            }
+        ],
+        "max_tokens": 100,
+        "temperature": 0.3
+    }
+
+    for attempt in range(3):
+        try:
+            time.sleep(0.5)  # Delay before each request
+            resp = requests.post(DEEPSEEK_API_URL, headers=headers, json=data, timeout=15)
+            result = resp.json()
+
+            if "choices" in result and len(result["choices"]) > 0:
+                return result["choices"][0]["message"]["content"].strip()
+            else:
+                print(f"    DeepSeek error (attempt {attempt+1}): {result}")
+                time.sleep(2)  # Wait before retry
+        except Exception as e:
+            print(f"    Translation attempt {attempt+1} failed: {e}")
+            time.sleep(2)
+
+    return ""
 
 
 def fetch_papers():
@@ -109,7 +117,6 @@ def fetch_papers():
 
     for journal in JOURNALS:
         print(f"Fetching {journal}...")
-        time.sleep(1)  # Rate limit: 1 second between requests
 
         search_query = (
             f'"{journal}"[Journal] AND ('
@@ -125,25 +132,45 @@ def fetch_papers():
             f"?db=pubmed&term={search_query}&retmax=50&retmode=json"
             f"&mindate={start_str}&maxdate={end_str}&datetype=pdat"
         )
-        try:
-            resp = requests.get(search_url, timeout=30)
-            resp.raise_for_status()
-            search_data = resp.json()
-            id_list = search_data.get("esearchresult", {}).get("idlist", [])
-            if not id_list:
-                print(f"  {journal}: No new papers")
-                continue
-            print(f"  {journal}: Found {len(id_list)} papers, fetching details...")
-            time.sleep(0.5)
-            ids = ",".join(id_list)
-            fetch_url = f"{base_url}/efetch.fcgi?db=pubmed&id={ids}&retmode=xml"
-            resp = requests.get(fetch_url, timeout=30)
-            resp.raise_for_status()
-            papers = parse_pubmed_xml(resp.text, journal)
-            print(f"  {journal}: {len(papers)} papers parsed")
-            all_papers.extend(papers)
-        except Exception as e:
-            print(f"  {journal}: Failed - {e}")
+
+        # Retry up to 3 times for PubMed requests
+        for attempt in range(3):
+            try:
+                time.sleep(1.5)  # Delay to avoid 429 rate limit
+                resp = requests.get(search_url, timeout=30)
+                resp.raise_for_status()
+                search_data = resp.json()
+                id_list = search_data.get("esearchresult", {}).get("idlist", [])
+                break
+            except Exception as e:
+                print(f"  {journal}: search attempt {attempt+1} failed - {e}")
+                id_list = []
+                time.sleep(5)  # Wait longer before retry
+
+        if not id_list:
+            print(f"  {journal}: No new papers")
+            continue
+
+        print(f"  {journal}: Found {len(id_list)} papers, fetching details...")
+
+        # Fetch details with retry
+        papers = []
+        for attempt in range(3):
+            try:
+                time.sleep(1.5)
+                ids = ",".join(id_list)
+                fetch_url = f"{base_url}/efetch.fcgi?db=pubmed&id={ids}&retmode=xml"
+                resp = requests.get(fetch_url, timeout=30)
+                resp.raise_for_status()
+                papers = parse_pubmed_xml(resp.text, journal)
+                break
+            except Exception as e:
+                print(f"  {journal}: fetch attempt {attempt+1} failed - {e}")
+                time.sleep(5)
+
+        print(f"  {journal}: {len(papers)} papers parsed")
+        all_papers.extend(papers)
+
     return all_papers
 
 
@@ -180,6 +207,7 @@ def parse_rss(xml_text, journal_name):
                         pub_date = datetime.strptime(pub_date[:11], "%a, %d %b %Y").strftime("%Y-%m-%d")
                     except:
                         pub_date = ""
+
             description = item.find("description").text if item.find("description") is not None else ""
             abstract = re.sub(r'<[^>]+>', '', description)[:500]
 
@@ -323,6 +351,7 @@ Paper Abstract: {paper['abstract'][:500]}
 Answer with ONLY ONE WORD: YES or NO
 """
 
+            time.sleep(0.5)  # Delay before AI call
             response = model.generate_content(prompt)
             result = response.text.strip().upper()
 
