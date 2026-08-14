@@ -37,7 +37,7 @@ jobs:
           node-version: '22'
 
       - name: Install Node dependencies
-        run: npm ci --no-optional
+        run: npm install
 
       - name: Install rolldown WASI binding
         run: npm install @rolldown/binding-wasm32-wasi --no-save
