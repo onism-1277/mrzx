@@ -59,19 +59,40 @@ KEYWORDS = [
 
 DAYS_BACK = 3
 
+DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
+DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
+
 
 def translate_title(title):
+    if not DEEPSEEK_API_KEY:
+        return ""
     try:
-        import google.generativeai as genai
-        api_key = os.environ.get("GEMINI_API_KEY", "")
-        if not api_key:
-            print("    No GEMINI_API_KEY")
+        headers = {
+            "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "model": "deepseek-chat",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a professional life science translator. Translate the following paper title into concise and accurate Chinese. Return only the translation, no explanation."
+                },
+                {
+                    "role": "user",
+                    "content": title
+                }
+            ],
+            "max_tokens": 100,
+            "temperature": 0.3
+        }
+        resp = requests.post(DEEPSEEK_API_URL, headers=headers, json=data, timeout=15)
+        result = resp.json()
+        if "choices" in result and len(result["choices"]) > 0:
+            return result["choices"][0]["message"]["content"].strip()
+        else:
+            print(f"    DeepSeek error: {result}")
             return ""
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        prompt = f"Translate the following paper title to Chinese. Return only the translation, no explanation:\n\n{title}"
-        response = model.generate_content(prompt)
-        return response.text.strip()
     except Exception as e:
         print(f"    Translation failed: {e}")
         return ""
@@ -185,6 +206,10 @@ def parse_pubmed_xml(xml_text, journal):
             if not title:
                 continue
 
+            title_cn = translate_title(title)
+            if title_cn:
+                print(f"    OK {title[:60]}... -> {title_cn[:40]}...")
+
             abstract_parts = []
             for abs_elem in article.findall(".//AbstractText"):
                 label = abs_elem.get("Label", "")
@@ -235,7 +260,7 @@ def parse_pubmed_xml(xml_text, journal):
 
             papers.append({
                 "title": title.strip(),
-                "title_cn": "",
+                "title_cn": title_cn,
                 "title_cn_summary": "",
                 "journal": journal,
                 "date": pub_date,
@@ -254,7 +279,7 @@ def parse_pubmed_xml(xml_text, journal):
 
 
 def ai_filter_papers(papers):
-    """Use Gemini AI to filter papers and translate titles"""
+    """Use Gemini AI to filter papers based on wildlife relevance"""
     filtered = []
     for paper in papers:
         try:
@@ -288,42 +313,24 @@ Topics that are NOT relevant:
 Paper Title: {paper['title']}
 Paper Abstract: {paper['abstract'][:500]}
 
-Answer in EXACTLY 4 lines, no extra text:
-Line 1: YES or NO
-Line 2 (if YES): Chinese translation of the paper title
-Line 3 (if YES): one short Chinese sentence summarizing the main finding
-Line 4 (if YES): category from [ecology, conservation, human-wildlife, disease-health, genetics-evolution, methods, policy-management]
-
-Example:
-YES
-本研究利用GPS追踪揭示了东北虎的家域大小和活动节律
-该研究首次量化了东北虎在长白山地区的家域面积和日活动节律
-ecology
+Answer with ONLY ONE WORD: YES or NO
 """
 
             response = model.generate_content(prompt)
-            result = response.text.strip()
-            lines = [l.strip() for l in result.split('\n') if l.strip()]
+            result = response.text.strip().upper()
 
-            is_relevant = lines[0].upper() == "YES" if lines else False
-
-            if is_relevant:
-                paper["title_cn"] = lines[1] if len(lines) > 1 else ""
-                paper["title_cn_summary"] = lines[2] if len(lines) > 2 else ""
-                paper["category"] = lines[3] if len(lines) > 3 else "ecology"
+            if result == "YES":
+                paper["category"] = "wildlife"
                 filtered.append(paper)
-                print(f"    AI KEEP: {paper['title'][:50]}... -> {paper['title_cn'][:30]}")
+                print(f"    AI KEEP: {paper['title'][:60]}...")
             else:
-                print(f"    AI SKIP: {paper['title'][:50]}...")
+                print(f"    AI SKIP: {paper['title'][:60]}...")
 
         except Exception as e:
             print(f"    AI filter failed: {e}")
-            # Fallback to keyword filter
             text = (paper["title"] + " " + paper["abstract"]).lower()
             if any(kw.lower() in text for kw in KEYWORDS):
                 paper["category"] = get_category(next(kw for kw in KEYWORDS if kw.lower() in text))
-                paper["title_cn"] = translate_title(paper["title"]) if not paper.get("title_cn") else paper["title_cn"]
-                paper["title_cn_summary"] = ""
                 filtered.append(paper)
 
     return filtered
