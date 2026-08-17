@@ -363,7 +363,15 @@ def parse_pubmed_xml(xml_text, journal):
 
     return papers
 
+if content == "YES":
+                # --- 新加这几行：根据关键词匹配 category，匹配不到则默认给 "zoology" ---
+                text = (paper["title"] + " " + (paper.get("abstract") or "")).lower()
+                matched_keywords = [kw for kw in KEYWORDS if kw.lower() in text]
+                paper["category"] = get_category(matched_keywords[0]) if matched_keywords else "zoology"
+                # ------------------------------------------------------------------
 
+                filtered.append(paper)
+                print(f"    DeepSeek KEEP: {paper['title'][:60]}...")
 
 
 def ai_filter_papers(papers):
