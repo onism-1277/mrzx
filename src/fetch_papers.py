@@ -364,6 +364,8 @@ def parse_pubmed_xml(xml_text, journal):
     return papers
 
 
+
+
 def ai_filter_papers(papers):
     """Use DeepSeek to filter papers based on wildlife relevance."""
     if not DEEPSEEK_API_KEY:
@@ -426,6 +428,10 @@ def ai_filter_papers(papers):
             ).upper()
 
             if content == "YES":
+                # 使用关键词匹配补齐 category，无匹配则默认赋予 "zoology"
+                text = (paper["title"] + " " + paper["abstract"]).lower()
+                matched = [kw for kw in KEYWORDS if kw.lower() in text]
+                paper["category"] = get_category(matched[0]) if matched else "zoology"
                 filtered.append(paper)
                 print(f"    DeepSeek KEEP: {paper['title'][:60]}...")
             else:
@@ -541,7 +547,7 @@ if __name__ == "__main__":
     unique_papers = translate_papers(unique_papers)
     print(f"\nAfter AI filtering: {len(unique_papers)} papers")
 
-    output_dir = os.path.join(os.path.dirname(__file__), "data")
+    output_dir = os.path.join(os.path.dirname(__file__), "..", "data")
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, "papers.json")
 
