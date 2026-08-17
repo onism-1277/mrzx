@@ -243,7 +243,7 @@ def parse_rss(xml_text, journal_name):
             description = item.find("description").text if item.find("description") is not None else ""
             abstract = re.sub(r'<[^>]+>', '', description)[:500]
 
-            title_cn = translate_title(title)
+            title_cn = ""
 
             papers.append({
                 "title": title.strip(),
@@ -273,9 +273,7 @@ def parse_pubmed_xml(xml_text, journal):
             if not title:
                 continue
 
-            title_cn = translate_title(title)
-            if title_cn:
-                print(f"    OK {title[:60]}... -> {title_cn[:40]}...")
+            title_cn = ""
 
             abstract_parts = []
             for abs_elem in article.findall(".//AbstractText"):
@@ -455,6 +453,22 @@ def get_category(keyword):
     return "other"
 
 
+
+def translate_papers(papers):
+    """Translate selected paper titles after AI filtering."""
+    untranslated = [paper for paper in papers if not paper.get("title_cn") and paper.get("title")]
+    print(f"\nTranslating {len(untranslated)} selected paper titles with Gemini...")
+
+    for index, paper in enumerate(untranslated, start=1):
+        paper["title_cn"] = translate_title(paper["title"])
+        if paper["title_cn"]:
+            print(f"    [{index}/{len(untranslated)}] OK: {paper['title'][:50]}...")
+        else:
+            print(f"    [{index}/{len(untranslated)}] FAILED: {paper['title'][:50]}...")
+
+    return papers
+
+
 if __name__ == "__main__":
     print("=" * 50)
     print("Fetching latest wildlife science papers...")
@@ -477,6 +491,7 @@ if __name__ == "__main__":
             seen.add(p["pmid"])
             unique_papers.append(p)
 
+    unique_papers = translate_papers(unique_papers)
     print(f"\nAfter AI filtering: {len(unique_papers)} papers")
 
     output_dir = os.path.join(os.path.dirname(__file__), "data")
