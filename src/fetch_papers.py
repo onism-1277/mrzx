@@ -3,8 +3,10 @@ import json
 import os
 import time
 from datetime import datetime, timedelta
+from functools import lru_cache
 import xml.etree.ElementTree as ET
 import re
+
 
 # ============================================
 # Configuration
@@ -60,51 +62,89 @@ KEYWORDS = [
 
 DAYS_BACK = 3
 
-DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
-DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
+DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "").strip()
+DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions"
 
 
+def clean_translation(text):
+    text = (text or "").strip()
+    text = re.sub(r"^```(?:\w+)?\s*", "", text)
+    text = re.sub(r"\s*```$", "", text)
+    text = text.strip().strip('"“”\'')
+    text = re.sub(r"^(中文翻译|翻译|译文|标题翻译)[:：]\s*", "", text)
+    return text.strip()
+
+
+def contains_chinese(text):
+    return bool(re.search(r"[\u4e00-\u9fff]", text or ""))
+
+
+@lru_cache(maxsize=1000)
 def translate_title(title):
-    """Translate title using DeepSeek API with retry logic"""
+    """Translate an English paper title into Chinese using DeepSeek."""
+    title = (title or "").strip()
+    if not title:
+        return ""
+
+    if contains_chinese(title):
+        return title
+
     if not DEEPSEEK_API_KEY:
+        print("    No DEEPSEEK_API_KEY, skip title translation")
         return ""
 
     headers = {
         "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Accept": "application/json",
     }
     data = {
         "model": "deepseek-chat",
         "messages": [
             {
                 "role": "system",
-                "content": "You are a professional life science translator. Translate the following paper title into concise and accurate Chinese. Return only the translation, no explanation."
+                "content": "你是一名生命科学领域的专业译者。请将英文论文标题准确、简洁地翻译成中文，只返回中文标题，不要解释，不要加引号。",
             },
             {
                 "role": "user",
-                "content": title
-            }
+                "content": title,
+            },
         ],
-        "max_tokens": 100,
-        "temperature": 0.3
+        "max_tokens": 200,
+        "temperature": 0.2,
+        "stream": False,
     }
 
     for attempt in range(3):
         try:
-            time.sleep(0.5)  # Delay before each request
-            resp = requests.post(DEEPSEEK_API_URL, headers=headers, json=data, timeout=15)
+            time.sleep(0.8)
+            resp = requests.post(DEEPSEEK_API_URL, headers=headers, json=data, timeout=30)
+            resp.raise_for_status()
             result = resp.json()
 
-            if "choices" in result and len(result["choices"]) > 0:
-                return result["choices"][0]["message"]["content"].strip()
-            else:
-                print(f"    DeepSeek error (attempt {attempt+1}): {result}")
-                time.sleep(2)  # Wait before retry
-        except Exception as e:
-            print(f"    Translation attempt {attempt+1} failed: {e}")
+            choices = result.get("choices") or []
+            if not choices:
+                print(f"    DeepSeek returned no choices (attempt {attempt + 1}): {result}")
+                time.sleep(2)
+                continue
+
+            message = choices[0].get("message") or {}
+            translation = clean_translation(message.get("content", ""))
+            if translation:
+                return translation
+
+            print(f"    DeepSeek returned empty translation (attempt {attempt + 1})")
             time.sleep(2)
+        except requests.HTTPError as e:
+            body = e.response.text[:500] if e.response is not None else ""
+            print(f"    DeepSeek HTTP error (attempt {attempt + 1}): {e} {body}")
+            time.sleep(3)
+        except Exception as e:
+            print(f"    Translation attempt {attempt + 1} failed: {e}")
+            time.sleep(3)
 
     return ""
+
 
 
 def fetch_papers():
