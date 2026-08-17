@@ -435,23 +435,28 @@ def ai_filter_papers(papers):
                 (result.get("choices", [{}])[0].get("message") or {}).get("content", "")
             ).upper()
 
+            # --- 关键修改：判断逻辑必须放在 try 内部 ---
             if content == "YES":
-                # 使用关键词匹配补齐 category，无匹配则默认赋予 "zoology"
-                text = (paper["title"] + " " + paper["abstract"]).lower()
-                matched = [kw for kw in KEYWORDS if kw.lower() in text]
-                paper["category"] = get_category(matched[0]) if matched else "zoology"
+                # 自动分配分类，防止前端因 category 为空而显示 0 条
+                text = (paper["title"] + " " + (paper.get("abstract") or "")).lower()
+                matched_keywords = [kw for kw in KEYWORDS if kw.lower() in text]
+                paper["category"] = get_category(matched_keywords[0]) if matched_keywords else "zoology"
+
                 filtered.append(paper)
                 print(f"    DeepSeek KEEP: {paper['title'][:60]}...")
             else:
                 print(f"    DeepSeek SKIP: {paper['title'][:60]}...")
+
         except Exception as e:
             print(f"    DeepSeek filter failed: {e}")
+            # 接口报错时的降级处理：若匹配到关键词则保留，并赋予分类
             text = (paper["title"] + " " + paper["abstract"]).lower()
-            if any(kw.lower() in text for kw in KEYWORDS):
+            matched_keywords = [kw for kw in KEYWORDS if kw.lower() in text]
+            if matched_keywords:
+                paper["category"] = get_category(matched_keywords[0])
                 filtered.append(paper)
 
     return filtered
-
 
 # Gemini 相关性筛选暂时停用，保留代码供以后切换：
 # result = generate_gemini_text(prompt).upper()
