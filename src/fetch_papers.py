@@ -63,6 +63,8 @@ KEYWORDS = [
 DAYS_BACK = 3
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
+DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "").strip()
+DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 
 
 def clean_translation(text):
@@ -89,10 +91,12 @@ def get_gemini_client():
 
 
 def generate_gemini_text(prompt):
-    client = get_gemini_client()
-    if client is None:
+    if not GEMINI_API_KEY:
         return ""
 
+    from google import genai
+
+    client = genai.Client(api_key=GEMINI_API_KEY)
     response = client.models.generate_content(
         model="gemini-2.0-flash",
         contents=prompt,
@@ -103,34 +107,54 @@ def generate_gemini_text(prompt):
 
 @lru_cache(maxsize=1000)
 def translate_title(title):
-    """Translate an English paper title into Chinese using Gemini API."""
+    """Translate a paper title with DeepSeek API."""
     title = (title or "").strip()
     if not title:
         return ""
     if contains_chinese(title):
         return title
-    if not GEMINI_API_KEY:
-        print("    No GEMINI_API_KEY, skip title translation")
+    if not DEEPSEEK_API_KEY:
+        print("    No DEEPSEEK_API_KEY, skip title translation")
         return ""
 
-    prompt = (
-        "你是一名生命科学领域的专业译者。请将下面这篇英文论文标题翻译成准确、简洁的中文。"
-        "只返回中文标题，不要解释，不要加引号。\n\n"
-        f"英文标题：{title}"
-    )
+    headers = {
+        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    data = {
+        "model": "deepseek-chat",
+        "messages": [
+            {
+                "role": "system",
+                "content": "你是专业生命科学翻译。请将论文标题准确翻译为中文，只返回译文，不要解释。",
+            },
+            {"role": "user", "content": title},
+        ],
+        "max_tokens": 100,
+        "temperature": 0.3,
+    }
 
     for attempt in range(3):
         try:
-            time.sleep(0.8)
-            translation = clean_translation(generate_gemini_text(prompt))
-            if translation:
-                print(f"    Gemini translated: {translation[:40]}...")
-                return translation
-
-            print(f"    Gemini returned empty translation (attempt {attempt + 1})")
+            time.sleep(1.2)
+            response = requests.post(DEEPSEEK_API_URL, headers=headers, json=data, timeout=30)
+            response.raise_for_status()
+            result = response.json()
+            choices = result.get("choices") or []
+            if choices:
+                translation = clean_translation(
+                    (choices[0].get("message") or {}).get("content", "")
+                )
+                if translation:
+                    print(f"    DeepSeek translated: {translation[:40]}...")
+                    return translation
+            print(f"    DeepSeek returned empty translation (attempt {attempt + 1})")
+        except requests.HTTPError as e:
+            body = e.response.text[:300] if e.response is not None else ""
+            print(f"    DeepSeek HTTP error (attempt {attempt + 1}): {e} {body}")
         except Exception as e:
-            print(f"    Gemini title translation failed (attempt {attempt + 1}): {e}")
-        time.sleep(2)
+            print(f"    DeepSeek translation failed (attempt {attempt + 1}): {e}")
+        time.sleep(3)
 
     print(f"    Title translation failed: {title[:60]}...")
     return ""
@@ -240,7 +264,7 @@ def parse_rss(xml_text, journal_name):
             description = item.find("description").text if item.find("description") is not None else ""
             abstract = re.sub(r'<[^>]+>', '', description)[:500]
 
-            title_cn = ""
+            title_cn = translate_title(title)
 
             papers.append({
                 "title": title.strip(),
@@ -270,7 +294,7 @@ def parse_pubmed_xml(xml_text, journal):
             if not title:
                 continue
 
-            title_cn = ""
+            title_cn = translate_title(title)
 
             abstract_parts = []
             for abs_elem in article.findall(".//AbstractText"):
