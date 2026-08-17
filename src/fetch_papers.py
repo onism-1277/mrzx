@@ -79,14 +79,26 @@ def contains_chinese(text):
 
 
 @lru_cache(maxsize=1)
-def get_gemini_model():
+def get_gemini_client():
     if not GEMINI_API_KEY:
         return None
 
-    import google.generativeai as genai
+    from google import genai
 
-    genai.configure(api_key=GEMINI_API_KEY)
-    return genai.GenerativeModel("gemini-1.5-flash")
+    return genai.Client(api_key=GEMINI_API_KEY)
+
+
+def generate_gemini_text(prompt):
+    client = get_gemini_client()
+    if client is None:
+        return ""
+
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt,
+    )
+    return getattr(response, "text", "").strip()
+
 
 
 @lru_cache(maxsize=1000)
@@ -95,10 +107,8 @@ def translate_title(title):
     title = (title or "").strip()
     if not title:
         return ""
-
     if contains_chinese(title):
         return title
-
     if not GEMINI_API_KEY:
         print("    No GEMINI_API_KEY, skip title translation")
         return ""
@@ -112,31 +122,18 @@ def translate_title(title):
     for attempt in range(3):
         try:
             time.sleep(0.8)
-            model = get_gemini_model()
-            if model is None:
-                return ""
-
-            response = model.generate_content(prompt)
-            translation = clean_translation(getattr(response, "text", ""))
+            translation = clean_translation(generate_gemini_text(prompt))
             if translation:
                 print(f"    Gemini translated: {translation[:40]}...")
                 return translation
 
             print(f"    Gemini returned empty translation (attempt {attempt + 1})")
-            time.sleep(2)
         except Exception as e:
             print(f"    Gemini title translation failed (attempt {attempt + 1}): {e}")
-            time.sleep(3)
+        time.sleep(2)
 
     print(f"    Title translation failed: {title[:60]}...")
     return ""
-
-
-
-
-
-
-
 
 
 def fetch_papers():
@@ -344,19 +341,14 @@ def parse_pubmed_xml(xml_text, journal):
 
 
 def ai_filter_papers(papers):
-    """Use Gemini AI to filter papers based on wildlife relevance"""
+    """Use Gemini AI to filter papers based on wildlife relevance."""
+    if not GEMINI_API_KEY:
+        print("  No GEMINI_API_KEY, falling back to keyword filter")
+        return filter_by_keywords(papers)
+
     filtered = []
     for paper in papers:
-        try:
-            import google.generativeai as genai
-            api_key = os.environ.get("GEMINI_API_KEY", "")
-            if not api_key:
-                print("  No GEMINI_API_KEY, falling back to keyword filter")
-                return filter_by_keywords(papers)
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel('gemini-1.5-flash')
-
-            prompt = f"""You are a wildlife biology expert. Determine if the following paper is relevant to WILD VERTEBRATE research.
+        prompt = f"""You are a wildlife biology expert. Determine if the following paper is relevant to WILD VERTEBRATE research.
 
 Topics that ARE relevant:
 - Basic ecology of wild vertebrates (mammals, birds, reptiles, amphibians, fish)
@@ -380,17 +372,14 @@ Paper Abstract: {paper['abstract'][:500]}
 
 Answer with ONLY ONE WORD: YES or NO
 """
-
-            time.sleep(0.5)  # Delay before AI call
-            response = model.generate_content(prompt)
-            result = response.text.strip().upper()
-
+        try:
+            time.sleep(0.5)
+            result = generate_gemini_text(prompt).upper()
             if result == "YES":
                 filtered.append(paper)
                 print(f"    AI KEEP: {paper['title'][:60]}...")
             else:
                 print(f"    AI SKIP: {paper['title'][:60]}...")
-
         except Exception as e:
             print(f"    AI filter failed: {e}")
             text = (paper["title"] + " " + paper["abstract"]).lower()
@@ -514,13 +503,8 @@ if __name__ == "__main__":
 
     existing_papers = existing_papers[:500]
 
+
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(existing_papers, f, ensure_ascii=False, indent=2)
 
     print(f"Saved to {output_path} (total {len(existing_papers)} papers)")
-
-    print("\nBuilding site...")
-    project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    os.chdir(project_dir)
-    os.system("npm run build")
-    print("Build complete!")
