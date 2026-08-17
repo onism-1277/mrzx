@@ -365,52 +365,86 @@ def parse_pubmed_xml(xml_text, journal):
 
 
 def ai_filter_papers(papers):
-    """Use Gemini AI to filter papers based on wildlife relevance."""
-    if not GEMINI_API_KEY:
-        print("  No GEMINI_API_KEY, falling back to keyword filter")
+    """Use DeepSeek to filter papers based on wildlife relevance."""
+    if not DEEPSEEK_API_KEY:
+        print("  No DEEPSEEK_API_KEY, falling back to keyword filter")
         return filter_by_keywords(papers)
 
     filtered = []
+    system_prompt = (
+        "你是野生动物学和生命科学领域的论文评审专家。"
+        "请判断论文是否与野生脊椎动物研究直接相关。"
+        "只返回 YES 或 NO，不要解释。"
+    )
+
     for paper in papers:
-        prompt = f"""You are a wildlife biology expert. Determine if the following paper is relevant to WILD VERTEBRATE research.
+        prompt = f"""请判断下面的论文是否属于野生脊椎动物研究。
 
-Topics that ARE relevant:
-- Basic ecology of wild vertebrates (mammals, birds, reptiles, amphibians, fish)
-- Conservation of wild vertebrate species
-- Human-wildlife interactions and conflict
-- Wildlife diseases and health
-- Genetics and evolution of wild vertebrates
-- Technical methods applicable to wildlife research
-- Wildlife policy, management, and planning
+可以保留的主题：
+- 野生哺乳动物、鸟类、爬行动物、两栖动物和鱼类的生态学
+- 野生动物保护、生物多样性和濒危物种
+- 人兽冲突和野生动物管理
+- 野生动物疾病和健康
+- 野生脊椎动物的遗传学、基因组学和进化
+- 可应用于野生动物研究的技术和方法
 
-Topics that are NOT relevant:
-- Plant biology or botany
-- Domestic animals (livestock, pets) unless directly related to wildlife
-- Human medicine (unless zoonotic disease from wildlife)
-- Pure molecular biology without wildlife application
-- Marine invertebrates
-- Human cancer, human genetics, human disease
+应当排除的主题：
+- 植物、农业和园艺
+- 家畜、宠物等家养动物，除非明确涉及野生动物
+- 与野生动物无关的人类医学
+- 没有动物或野生动物应用场景的纯分子生物学
+- 海洋无脊椎动物
 
-Paper Title: {paper['title']}
-Paper Abstract: {paper['abstract'][:500]}
+论文标题：{paper['title']}
+论文摘要：{paper['abstract'][:500]}
 
-Answer with ONLY ONE WORD: YES or NO
-"""
+只返回 YES 或 NO。"""
+
         try:
-            time.sleep(0.5)
-            result = generate_gemini_text(prompt).upper()
-            if result == "YES":
+            time.sleep(1.2)
+            response = requests.post(
+                DEEPSEEK_API_URL,
+                headers={
+                    "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": "deepseek-chat",
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt},
+                    ],
+                    "max_tokens": 10,
+                    "temperature": 0.1,
+                },
+                timeout=30,
+            )
+            response.raise_for_status()
+            result = response.json()
+            content = clean_translation(
+                (result.get("choices", [{}])[0].get("message") or {}).get("content", "")
+            ).upper()
+
+            if content == "YES":
                 filtered.append(paper)
-                print(f"    AI KEEP: {paper['title'][:60]}...")
+                print(f"    DeepSeek KEEP: {paper['title'][:60]}...")
             else:
-                print(f"    AI SKIP: {paper['title'][:60]}...")
+                print(f"    DeepSeek SKIP: {paper['title'][:60]}...")
         except Exception as e:
-            print(f"    AI filter failed: {e}")
+            print(f"    DeepSeek filter failed: {e}")
             text = (paper["title"] + " " + paper["abstract"]).lower()
             if any(kw.lower() in text for kw in KEYWORDS):
                 filtered.append(paper)
 
     return filtered
+
+
+# Gemini 相关性筛选暂时停用，保留代码供以后切换：
+# result = generate_gemini_text(prompt).upper()
+# if result == "YES":
+#     filtered.append(paper)
+# else:
+#     print(f"Gemini SKIP: {paper['title'][:60]}...")
 
 
 def filter_by_keywords(papers):
@@ -470,7 +504,7 @@ def get_category(keyword):
 def translate_papers(papers):
     """Translate selected paper titles after AI filtering."""
     untranslated = [paper for paper in papers if not paper.get("title_cn") and paper.get("title")]
-    print(f"\nTranslating {len(untranslated)} selected paper titles with Gemini...")
+    print(f"\nTranslating {len(untranslated)} selected paper titles with DeepSeek...")
 
     for index, paper in enumerate(untranslated, start=1):
         paper["title_cn"] = translate_title(paper["title"])
