@@ -3,70 +3,109 @@ import papers from '../data/papers.json';
 
 const pageTitle = "历史文献归档";
 
+const journalFullNames: Record<string, string> = {
+  "Nature": "Nature",
+  "Science": "Science",
+  "Proc Natl Acad Sci U S A": "PNAS",
+  "Sci Adv": "Science Advances",
+  "Nat Commun": "Nature Communications",
+  "Mol Biol Evol": "Molecular Biology and Evolution",
+  "Gene": "GENE",
+  "Biol Conserv": "Biological Conservation",
+  "Conserv Biol": "Conservation Biology",
+  "Front Ecol Environ": "Frontiers in Ecology and the Environment",
+  "J Wildl Manage": "The Journal of Wildlife Management",
+  "Wildl Monogr": "Wildlife Monographs",
+  "Eur J Wildl Res": "European Journal of Wildlife Research",
+  "Wildl Biol": "Wildlife Biology",
+  "J Mammal": "Journal of Mammalogy",
+  "J Zool": "Journal of Zoology",
+  "Zool Res": "Zoological Research",
+  "野生动物学报": "野生动物学报",
+};
+
+function getJournalName(abbr: string): string {
+  return journalFullNames[abbr] || abbr;
+}
+
 // 2026-01-01 之后的所有论文
 const historyPapers = papers.filter((p) => p.date >= "2026-01-01");
 
 // 按月份分组
 const byMonth: Record<string, typeof historyPapers> = {};
 historyPapers.forEach((p) => {
-  const month = p.date.slice(0, 7); // YYYY-MM
+  const month = p.date.slice(0, 7);
   if (!byMonth[month]) byMonth[month] = [];
   byMonth[month].push(p);
 });
 
 const months = Object.keys(byMonth).sort().reverse();
+const totalCount = historyPapers.length;
 ---
 
 <!DOCTYPE html>
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{pageTitle}</title>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font-family: -apple-system, sans-serif; background: #f5f5f5; color: #333; }
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f5f5; color: #333; }
       .container { max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }
-      h1 { text-align: center; margin-bottom: 1.5rem; }
-      .tabs { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1.5rem; }
-      .tab { padding: 0.5rem 1rem; border: 2px solid #4a90d9; border-radius: 20px; text-decoration: none; color: #4a90d9; }
-      .tab.active { background: #4a90d9; color: white; }
-      .month-section { margin-bottom: 1rem; }
-      .month-header { font-size: 1.2rem; font-weight: bold; margin: 1rem 0 0.5rem; }
-      .paper { background: white; border-radius: 8px; padding: 1rem; margin-bottom: 0.5rem; border-left: 3px solid #4a90d9; }
+      h1 { text-align: center; margin-bottom: 0.5rem; font-size: 1.8rem; }
+      .tabs { display: flex; justify-content: center; gap: 0.5rem; margin: 1.5rem 0; flex-wrap: wrap; }
+      .tab { padding: 0.5rem 1.2rem; border: 2px solid #4a90d9; border-radius: 20px; cursor: pointer; background: white; color: #4a90d9; font-size: 0.9rem; transition: all 0.2s; text-decoration: none; }
+      .tab:hover, .tab.active { background: #4a90d9; color: white; }
+      .summary { text-align: center; color: #888; margin-bottom: 1.5rem; font-size: 0.95rem; }
+
+      .month-section { margin-bottom: 1.5rem; }
+      .month-header { font-size: 1.2rem; font-weight: bold; color: #2c3e50; margin-bottom: 0.8rem; padding-bottom: 0.5rem; border-bottom: 2px solid #4a90d9; }
+      .paper { background: white; border-radius: 8px; padding: 1rem 1.2rem; margin-bottom: 0.5rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #4a90d9; }
+      .paper-title { font-size: 0.95rem; margin-bottom: 0.3rem; }
       .paper-title a { color: #2c3e50; text-decoration: none; }
-      .paper-title-cn { color: #666; font-size: 0.9rem; font-style: italic; }
-      .paper-meta { font-size: 0.8rem; color: #999; }
+      .paper-title a:hover { text-decoration: underline; color: #4a90d9; }
+      .paper-title-cn { font-size: 0.85rem; color: #666; font-style: italic; margin-bottom: 0.3rem; }
+      .paper-meta { font-size: 0.78rem; color: #999; }
+      .category-tag { display: inline-block; background: #e8f0fe; color: #4a90d9; padding: 1px 8px; border-radius: 10px; font-size: 0.7rem; margin-right: 0.5rem; }
+      .empty-state { text-align: center; padding: 3rem 1rem; color: #999; }
     </style>
   </head>
   <body>
     <div class="container">
       <h1>📚 {pageTitle}</h1>
-      
+      <p class="summary">共 {totalCount} 篇论文 · 2026-01-01 至今</p>
+
       <div class="tabs">
-        <a href="/" class="tab">每日</a>
-        <a href="/weekly" class="tab">每周</a>
-        <a href="/monthly" class="tab">每月</a>
-        <a href="/history" class="tab active">历史</a>
+        <a href="../" class="tab">Daily</a>
+        <a href="../weekly" class="tab">Weekly</a>
+        <a href="../monthly" class="tab">Monthly</a>
+        <a href="../history" class="tab active">📚 History</a>
       </div>
 
-      <p style="text-align:center;color:#888;margin-bottom:1rem;">共 {historyPapers.length} 篇论文</p>
-
-      {months.map((month) => (
-        <section class="month-section">
-          <h2 class="month-header">{month}</h2>
-          {byMonth[month].map((paper) => (
-            <article class="paper">
-              <h3 class="paper-title">
-                <a href={paper.url} target="_blank" rel="noopener">{paper.title}</a>
-              </h3>
-              {paper.title_cn && <p class="paper-title-cn">{paper.title_cn}</p>}
-              <div class="paper-meta">
-                {paper.journal} · {paper.date} · {paper.category}
-              </div>
-            </article>
-          ))}
-        </section>
-      ))}
+      {months.length === 0 ? (
+        <div class="empty-state">
+          <p>暂无历史文献</p>
+        </div>
+      ) : (
+        months.map((month) => (
+          <section class="month-section">
+            <h2 class="month-header">📅 {month}</h2>
+            {byMonth[month].map((paper) => (
+              <article class="paper">
+                <h3 class="paper-title">
+                  <a href={paper.url} target="_blank" rel="noopener">{paper.title}</a>
+                </h3>
+                {paper.title_cn && <p class="paper-title-cn">{paper.title_cn}</p>}
+                <div class="paper-meta">
+                  <span class="category-tag">{paper.category || 'Life Science'}</span>
+                  <span>{getJournalName(paper.journal)} · {paper.date}</span>
+                </div>
+              </article>
+            ))}
+          </section>
+        ))
+      )}
     </div>
   </body>
 </html>
