@@ -522,7 +522,7 @@ if __name__ == "__main__":
             existing_papers.insert(0, p)
             existing_pmids.add(p["pmid"])
 
-    existing_papers = existing_papers[:500]
+    existing_papers = existing_papers[:3000]
 
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(existing_papers, f, ensure_ascii=False, indent=2)

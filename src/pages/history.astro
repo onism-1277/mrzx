@@ -1,0 +1,72 @@
+---
+import papers from '../data/papers.json';
+
+const pageTitle = "历史文献归档";
+
+// 2026-01-01 之后的所有论文
+const historyPapers = papers.filter((p) => p.date >= "2026-01-01");
+
+// 按月份分组
+const byMonth: Record<string, typeof historyPapers> = {};
+historyPapers.forEach((p) => {
+  const month = p.date.slice(0, 7); // YYYY-MM
+  if (!byMonth[month]) byMonth[month] = [];
+  byMonth[month].push(p);
+});
+
+const months = Object.keys(byMonth).sort().reverse();
+---
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>{pageTitle}</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: -apple-system, sans-serif; background: #f5f5f5; color: #333; }
+      .container { max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }
+      h1 { text-align: center; margin-bottom: 1.5rem; }
+      .tabs { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1.5rem; }
+      .tab { padding: 0.5rem 1rem; border: 2px solid #4a90d9; border-radius: 20px; text-decoration: none; color: #4a90d9; }
+      .tab.active { background: #4a90d9; color: white; }
+      .month-section { margin-bottom: 1rem; }
+      .month-header { font-size: 1.2rem; font-weight: bold; margin: 1rem 0 0.5rem; }
+      .paper { background: white; border-radius: 8px; padding: 1rem; margin-bottom: 0.5rem; border-left: 3px solid #4a90d9; }
+      .paper-title a { color: #2c3e50; text-decoration: none; }
+      .paper-title-cn { color: #666; font-size: 0.9rem; font-style: italic; }
+      .paper-meta { font-size: 0.8rem; color: #999; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>📚 {pageTitle}</h1>
+      
+      <div class="tabs">
+        <a href="/" class="tab">每日</a>
+        <a href="/weekly" class="tab">每周</a>
+        <a href="/monthly" class="tab">每月</a>
+        <a href="/history" class="tab active">历史</a>
+      </div>
+
+      <p style="text-align:center;color:#888;margin-bottom:1rem;">共 {historyPapers.length} 篇论文</p>
+
+      {months.map((month) => (
+        <section class="month-section">
+          <h2 class="month-header">{month}</h2>
+          {byMonth[month].map((paper) => (
+            <article class="paper">
+              <h3 class="paper-title">
+                <a href={paper.url} target="_blank" rel="noopener">{paper.title}</a>
+              </h3>
+              {paper.title_cn && <p class="paper-title-cn">{paper.title_cn}</p>}
+              <div class="paper-meta">
+                {paper.journal} · {paper.date} · {paper.category}
+              </div>
+            </article>
+          ))}
+        </section>
+      ))}
+    </div>
+  </body>
+</html>
