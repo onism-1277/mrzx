@@ -80,31 +80,6 @@ def contains_chinese(text):
     return bool(re.search(r"[\u4e00-\u9fff]", text or ""))
 
 
-@lru_cache(maxsize=1)
-def get_gemini_client():
-    if not GEMINI_API_KEY:
-        return None
-
-    from google import genai
-
-    return genai.Client(api_key=GEMINI_API_KEY)
-
-
-def generate_gemini_text(prompt):
-    if not GEMINI_API_KEY:
-        return ""
-
-    from google import genai
-
-    client = genai.Client(api_key=GEMINI_API_KEY)
-    response = client.models.generate_content(
-        model="gemini-2.0-flash",
-        contents=prompt,
-    )
-    return getattr(response, "text", "").strip()
-
-
-
 @lru_cache(maxsize=1000)
 def translate_title(title):
     """Translate a paper title with DeepSeek API."""
@@ -186,10 +161,9 @@ def fetch_papers():
             f"&mindate={start_str}&maxdate={end_str}&datetype=pdat"
         )
 
-        # Retry up to 3 times for PubMed requests
         for attempt in range(3):
             try:
-                time.sleep(1.5)  # Delay to avoid 429 rate limit
+                time.sleep(1.5)
                 resp = requests.get(search_url, timeout=30)
                 resp.raise_for_status()
                 search_data = resp.json()
@@ -198,7 +172,7 @@ def fetch_papers():
             except Exception as e:
                 print(f"  {journal}: search attempt {attempt+1} failed - {e}")
                 id_list = []
-                time.sleep(5)  # Wait longer before retry
+                time.sleep(5)
 
         if not id_list:
             print(f"  {journal}: No new papers")
@@ -206,7 +180,6 @@ def fetch_papers():
 
         print(f"  {journal}: Found {len(id_list)} papers, fetching details...")
 
-        # Fetch details with retry
         papers = []
         for attempt in range(3):
             try:
@@ -264,11 +237,9 @@ def parse_rss(xml_text, journal_name):
             description = item.find("description").text if item.find("description") is not None else ""
             abstract = re.sub(r'<[^>]+>', '', description)[:500]
 
-            title_cn = translate_title(title)
-
             papers.append({
                 "title": title.strip(),
-                "title_cn": title_cn,
+                "title_cn": "",
                 "title_cn_summary": "",
                 "journal": journal_name,
                 "date": pub_date,
@@ -282,16 +253,84 @@ def parse_rss(xml_text, journal_name):
         except Exception:
             continue
     return papers
-    
-if content == "YES":
-                # --- 新加这几行：根据关键词匹配 category，匹配不到则默认给 "zoology" ---
-                text = (paper["title"] + " " + (paper.get("abstract") or "")).lower()
-                matched_keywords = [kw for kw in KEYWORDS if kw.lower() in text]
-                paper["category"] = get_category(matched_keywords[0]) if matched_keywords else "zoology"
-                # ------------------------------------------------------------------
 
-                filtered.append(paper)
-                print(f"    DeepSeek KEEP: {paper['title'][:60]}...")
+
+def parse_pubmed_xml(xml_text, journal):
+    papers = []
+    root = ET.fromstring(xml_text)
+    for article in root.findall(".//PubmedArticle"):
+        try:
+            title_elem = article.find(".//ArticleTitle")
+            title = title_elem.text if title_elem is not None else ""
+            if not title:
+                continue
+
+            abstract_parts = []
+            for abs_elem in article.findall(".//AbstractText"):
+                label = abs_elem.get("Label", "")
+                text = abs_elem.text or ""
+                abstract_parts.append(f"{label}: {text}" if label else text)
+            abstract = " ".join(abstract_parts)
+
+            doi = ""
+            for eid in article.findall(".//ELocationID"):
+                if eid.get("EIdType") == "doi":
+                    doi = eid.text or ""
+
+            pmid_elem = article.find(".//PMID")
+            pmid = pmid_elem.text if pmid_elem is not None else ""
+
+            pub_date = ""
+            date_elem = article.find(".//PubDate")
+            if date_elem is not None:
+                year = date_elem.find("Year")
+                month = date_elem.find("Month")
+                day = date_elem.find("Day")
+                y = year.text if year is not None else ""
+                m = month.text if month is not None else "01"
+                d = day.text if day is not None else "01"
+                try:
+                    m = str(datetime.strptime(m, "%b").month).zfill(2)
+                except:
+                    pass
+                pub_date = f"{y}-{m.zfill(2) if len(m) < 2 else m}-{d.zfill(2) if len(d) < 2 else d}"
+
+            if doi:
+                url = f"https://doi.org/{doi}"
+            else:
+                url = f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/"
+
+            authors = []
+            for author in article.findall(".//Author"):
+                last = author.find("./LastName")
+                init = author.find("./Initials")
+                if last is not None:
+                    name = last.text or ""
+                    if init is not None and init.text:
+                        name += f" {init.text}"
+                    authors.append(name)
+            author_str = ", ".join(authors[:3])
+            if len(authors) > 3:
+                author_str += " et al."
+
+            papers.append({
+                "title": title.strip(),
+                "title_cn": "",
+                "title_cn_summary": "",
+                "journal": journal,
+                "date": pub_date,
+                "authors": author_str,
+                "abstract": abstract.strip()[:500],
+                "doi": doi,
+                "url": url,
+                "pmid": pmid,
+                "category": "",
+            })
+
+        except Exception:
+            continue
+
+    return papers
 
 
 def ai_filter_papers(papers):
@@ -356,7 +395,6 @@ def ai_filter_papers(papers):
             ).upper()
 
             if content == "YES":
-                # 使用关键词匹配补齐 category，无匹配则默认赋予 "zoology"
                 text = (paper["title"] + " " + paper["abstract"]).lower()
                 matched = [kw for kw in KEYWORDS if kw.lower() in text]
                 paper["category"] = get_category(matched[0]) if matched else "zoology"
@@ -371,14 +409,6 @@ def ai_filter_papers(papers):
                 filtered.append(paper)
 
     return filtered
-
-
-# Gemini 相关性筛选暂时停用，保留代码供以后切换：
-# result = generate_gemini_text(prompt).upper()
-# if result == "YES":
-#     filtered.append(paper)
-# else:
-#     print(f"Gemini SKIP: {paper['title'][:60]}...")
 
 
 def filter_by_keywords(papers):
@@ -434,7 +464,6 @@ def get_category(keyword):
     return "other"
 
 
-
 def translate_papers(papers):
     """Translate selected paper titles after AI filtering."""
     untranslated = [paper for paper in papers if not paper.get("title_cn") and paper.get("title")]
@@ -475,7 +504,7 @@ if __name__ == "__main__":
     unique_papers = translate_papers(unique_papers)
     print(f"\nAfter AI filtering: {len(unique_papers)} papers")
 
-    output_dir = os.path.join(os.path.dirname(__file__), "..", "data")
+    output_dir = os.path.join(os.path.dirname(__file__), "data")
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, "papers.json")
 
@@ -495,8 +524,13 @@ if __name__ == "__main__":
 
     existing_papers = existing_papers[:500]
 
-
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(existing_papers, f, ensure_ascii=False, indent=2)
 
     print(f"Saved to {output_path} (total {len(existing_papers)} papers)")
+
+    print("\nBuilding site...")
+    project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(project_dir)
+    os.system("npm run build")
+    print("Build complete!")
