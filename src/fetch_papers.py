@@ -282,87 +282,7 @@ def parse_rss(xml_text, journal_name):
         except Exception:
             continue
     return papers
-
-
-def parse_pubmed_xml(xml_text, journal):
-    papers = []
-    root = ET.fromstring(xml_text)
-    for article in root.findall(".//PubmedArticle"):
-        try:
-            title_elem = article.find(".//ArticleTitle")
-            title = title_elem.text if title_elem is not None else ""
-            if not title:
-                continue
-
-            title_cn = translate_title(title)
-
-            abstract_parts = []
-            for abs_elem in article.findall(".//AbstractText"):
-                label = abs_elem.get("Label", "")
-                text = abs_elem.text or ""
-                abstract_parts.append(f"{label}: {text}" if label else text)
-            abstract = " ".join(abstract_parts)
-
-            doi = ""
-            for eid in article.findall(".//ELocationID"):
-                if eid.get("EIdType") == "doi":
-                    doi = eid.text or ""
-
-            pmid_elem = article.find(".//PMID")
-            pmid = pmid_elem.text if pmid_elem is not None else ""
-
-            pub_date = ""
-            date_elem = article.find(".//PubDate")
-            if date_elem is not None:
-                year = date_elem.find("Year")
-                month = date_elem.find("Month")
-                day = date_elem.find("Day")
-                y = year.text if year is not None else ""
-                m = month.text if month is not None else "01"
-                d = day.text if day is not None else "01"
-                try:
-                    m = str(datetime.strptime(m, "%b").month).zfill(2)
-                except:
-                    pass
-                pub_date = f"{y}-{m.zfill(2) if len(m) < 2 else m}-{d.zfill(2) if len(d) < 2 else d}"
-
-            if doi:
-                url = f"https://doi.org/{doi}"
-            else:
-                url = f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/"
-
-            authors = []
-            for author in article.findall(".//Author"):
-                last = author.find("./LastName")
-                init = author.find("./Initials")
-                if last is not None:
-                    name = last.text or ""
-                    if init is not None and init.text:
-                        name += f" {init.text}"
-                    authors.append(name)
-            author_str = ", ".join(authors[:3])
-            if len(authors) > 3:
-                author_str += " et al."
-
-            papers.append({
-                "title": title.strip(),
-                "title_cn": title_cn,
-                "title_cn_summary": "",
-                "journal": journal,
-                "date": pub_date,
-                "authors": author_str,
-                "abstract": abstract.strip()[:500],
-                "doi": doi,
-                "url": url,
-                "pmid": pmid,
-                "category": "",
-            })
-
-        except Exception:
-            continue
-
-    return papers
-
+    
 if content == "YES":
                 # --- 新加这几行：根据关键词匹配 category，匹配不到则默认给 "zoology" ---
                 text = (paper["title"] + " " + (paper.get("abstract") or "")).lower()
@@ -435,28 +355,23 @@ def ai_filter_papers(papers):
                 (result.get("choices", [{}])[0].get("message") or {}).get("content", "")
             ).upper()
 
-            # --- 关键修改：判断逻辑必须放在 try 内部 ---
             if content == "YES":
-                # 自动分配分类，防止前端因 category 为空而显示 0 条
-                text = (paper["title"] + " " + (paper.get("abstract") or "")).lower()
-                matched_keywords = [kw for kw in KEYWORDS if kw.lower() in text]
-                paper["category"] = get_category(matched_keywords[0]) if matched_keywords else "zoology"
-
+                # 使用关键词匹配补齐 category，无匹配则默认赋予 "zoology"
+                text = (paper["title"] + " " + paper["abstract"]).lower()
+                matched = [kw for kw in KEYWORDS if kw.lower() in text]
+                paper["category"] = get_category(matched[0]) if matched else "zoology"
                 filtered.append(paper)
                 print(f"    DeepSeek KEEP: {paper['title'][:60]}...")
             else:
                 print(f"    DeepSeek SKIP: {paper['title'][:60]}...")
-
         except Exception as e:
             print(f"    DeepSeek filter failed: {e}")
-            # 接口报错时的降级处理：若匹配到关键词则保留，并赋予分类
             text = (paper["title"] + " " + paper["abstract"]).lower()
-            matched_keywords = [kw for kw in KEYWORDS if kw.lower() in text]
-            if matched_keywords:
-                paper["category"] = get_category(matched_keywords[0])
+            if any(kw.lower() in text for kw in KEYWORDS):
                 filtered.append(paper)
 
     return filtered
+
 
 # Gemini 相关性筛选暂时停用，保留代码供以后切换：
 # result = generate_gemini_text(prompt).upper()
