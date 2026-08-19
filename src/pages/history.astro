@@ -28,10 +28,9 @@ function getJournalName(abbr: string): string {
   return journalFullNames[abbr] || abbr;
 }
 
-// 2026-01-01 之后的所有论文
-const historyPapers = papers.filter((p) => p.date >= "2026-01-01");
+const todayStr = new Date().toISOString().slice(0, 10);
+const historyPapers = papers.filter((p) => p.date && p.date >= "2026-01-01" && p.date <= todayStr);
 
-// 按月份分组
 const byMonth: Record<string, typeof historyPapers> = {};
 historyPapers.forEach((p) => {
   const month = p.date.slice(0, 7);
