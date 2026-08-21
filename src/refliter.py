@@ -30,16 +30,16 @@ EXCLUDE if the paper is primarily about:
 - Laboratory studies without wild animal application
 
 Examples of EXCLUDE:
-- "Differences in climate change impacts on reptile embryos" (too narrow, lab-based)
-- "Threatened plants" (plants)
-- "Marine snail movement" (invertebrate)
-- "Corporate biodiversity losses" (no specific animal)
+- Climate change impacts on reptile embryos (too narrow, lab-based)
+- Threatened plants (plants)
+- Marine snail movement (invertebrate)
+- Corporate biodiversity losses (no specific animal)
 
 Examples of INCLUDE:
-- "Avian body condition in logged tropical forest" (birds)
-- "Bat roost conservation" (mammals)
-- "IUCN Red List threat attribution" (wildlife conservation)
-- "Wildlife trafficking detection dogs" (wildlife trade)
+- Avian body condition in logged tropical forest (birds)
+- Bat roost conservation (mammals)
+- IUCN Red List threat attribution (wildlife conservation)
+- Wildlife trafficking detection dogs (wildlife trade)
 
 Paper Title: {paper['title']}
 Paper Abstract: {paper['abstract'][:500]}
@@ -74,13 +74,11 @@ Answer with ONLY ONE WORD: YES or NO"""
     return False
 
 
-# Read papers
 with open(PAPERS_PATH, "r", encoding="utf-8") as f:
     papers = json.load(f)
 
 print(f"Total papers: {len(papers)}")
 
-# Refilter
 kept = []
 for i, paper in enumerate(papers, 1):
     result = ai_filter(paper)
@@ -91,7 +89,6 @@ for i, paper in enumerate(papers, 1):
 
 print(f"\nKept: {len(kept)} / {len(papers)} ({len(kept)/len(papers)*100:.1f}%)")
 
-# Save filtered result
 output_path = "D:/11433/VScode/mrzx/src/data/papers_filtered.json"
 with open(output_path, "w", encoding="utf-8") as f:
     json.dump(kept, f, ensure_ascii=False, indent=2)
