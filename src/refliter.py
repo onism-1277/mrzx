@@ -1,18 +1,11 @@
 import json
 import os
-import re
 import time
 import requests
 
-# 获取 API Key 并清理可能的非 ASCII 字符
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "").strip()
-
-# 如果环境变量为空，请务必在这里填入你真正的 sk-xxx Key（不要保留中文字符）
-if not DEEPSEEK_API_KEY or "你的Key" in DEEPSEEK_API_KEY:
-    DEEPSEEK_API_KEY = "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  # 请替换为你的真实 API Key
-
-# 过滤掉所有非 ASCII 字符，防止 latin-1 编码报错
-DEEPSEEK_API_KEY = re.sub(r"[^\x00-\x7F]+", "", DEEPSEEK_API_KEY).strip()
+if not DEEPSEEK_API_KEY:
+    DEEPSEEK_API_KEY = "你的Key"
 
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 PAPERS_PATH = "D:/11433/VScode/mrzx/src/data/papers.json"
@@ -48,8 +41,8 @@ Examples of INCLUDE:
 - IUCN Red List threat attribution (wildlife conservation)
 - Wildlife trafficking detection dogs (wildlife trade)
 
-Paper Title: {paper.get('title', '')}
-Paper Abstract: {paper.get('abstract', '')[:500]}
+Paper Title: {paper['title']}
+Paper Abstract: {paper['abstract'][:500]}
 
 Answer with ONLY ONE WORD: YES or NO"""
 
@@ -81,11 +74,6 @@ Answer with ONLY ONE WORD: YES or NO"""
     return False
 
 
-# 检查并读取文件
-if not os.path.exists(PAPERS_PATH):
-    print(f"错误: 找不到文件 {PAPERS_PATH}")
-    exit(1)
-
 with open(PAPERS_PATH, "r", encoding="utf-8") as f:
     papers = json.load(f)
 
@@ -95,15 +83,13 @@ kept = []
 for i, paper in enumerate(papers, 1):
     result = ai_filter(paper)
     status = "KEEP" if result else "SKIP"
-    print(f"[{i}/{len(papers)}] {status}: {paper.get('title', '')[:60]}...")
+    print(f"[{i}/{len(papers)}] {status}: {paper['title'][:60]}...")
     if result:
         kept.append(paper)
 
 print(f"\nKept: {len(kept)} / {len(papers)} ({len(kept)/len(papers)*100:.1f}%)")
 
 output_path = "D:/11433/VScode/mrzx/src/data/papers_filtered.json"
-os.makedirs(os.path.dirname(output_path), exist_ok=True)
-
 with open(output_path, "w", encoding="utf-8") as f:
     json.dump(kept, f, ensure_ascii=False, indent=2)
 
