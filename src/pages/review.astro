@@ -62,8 +62,8 @@ const papersJson = JSON.stringify(papers).replace(/</g, '\\u003c').replace(/>/g,
       </div>
     </div>
 
-    <script>
-      const rawPapers = {papersJson};
+    <script define:vars={{ papersJson }}>
+      const rawPapers = JSON.parse(papersJson);
 
       let currentIndex = 0;
       const annotations = JSON.parse(localStorage.getItem('annotations') || '{}');
@@ -136,6 +136,12 @@ const papersJson = JSON.stringify(papers).replace(/</g, '\\u003c').replace(/>/g,
           loadPaper();
         }
       }
+
+      // 绑定全局作用域方便 HTML 中的 onclick 调用
+      window.annotate = annotate;
+      window.exportResults = exportResults;
+      window.resetAll = resetAll;
+      window.goBack = goBack;
 
       loadPaper();
     </script>
