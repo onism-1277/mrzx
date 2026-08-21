@@ -341,33 +341,45 @@ def ai_filter_papers(papers):
 
     filtered = []
     system_prompt = (
-        "你是野生动物学和生命科学领域的论文评审专家。"
-        "请判断论文是否与野生脊椎动物研究直接相关。"
-        "只返回 YES 或 NO，不要解释。"
+        "You are a wildlife biology expert. "
+        "Determine if the paper directly studies wild vertebrates (mammals, birds, reptiles, amphibians, fish). "
+        "Return only YES or NO."
     )
 
-    for paper in papers:
-        prompt = f"""请判断下面的论文是否属于野生脊椎动物研究。
+       for paper in papers:
+        prompt = f"""You are a wildlife biologist reviewing papers for a database focused exclusively on WILD VERTEBRATES.
 
-可以保留的主题：
-- 野生哺乳动物、鸟类、爬行动物、两栖动物和鱼类的生态学
-- 野生动物保护、生物多样性和濒危物种
-- 人兽冲突和野生动物管理
-- 野生动物疾病和健康
-- 野生脊椎动物的遗传学、基因组学和进化
-- 可应用于野生动物研究的技术和方法
+INCLUDE only if the paper DIRECTLY studies one or more of:
+- Wild mammals, birds, reptiles, amphibians, or fish
+- Their ecology, behavior, conservation, management, or trade
+- Their diseases, genetics, or evolution
+- Human-wildlife conflict involving these animals
+- Methods specifically designed for studying these animals
 
-应当排除的主题：
-- 植物、农业和园艺
-- 家畜、宠物等家养动物，除非明确涉及野生动物
-- 与野生动物无关的人类医学
-- 没有动物或野生动物应用场景的纯分子生物学
-- 海洋无脊椎动物
+EXCLUDE if the paper is primarily about:
+- Plants, fungi, or agriculture
+- Invertebrates (insects, snails, copepods, corals, etc.)
+- Humans only (social science, policy without direct wildlife focus)
+- Domestic animals, livestock, or pets
+- General environmental science without a specific wild vertebrate focus
+- Laboratory studies without wild animal application
 
-论文标题：{paper['title']}
-论文摘要：{paper['abstract'][:500]}
+Examples of EXCLUDE:
+- "Differences in climate change impacts on reptile embryos" (too narrow, lab-based)
+- "Threatened plants" (plants)
+- "Marine snail movement" (invertebrate)
+- "Corporate biodiversity losses" (no specific animal)
 
-只返回 YES 或 NO。"""
+Examples of INCLUDE:
+- "Avian body condition in logged tropical forest" (birds)
+- "Bat roost conservation" (mammals)
+- "IUCN Red List threat attribution" (wildlife conservation)
+- "Wildlife trafficking detection dogs" (wildlife trade)
+
+Paper Title: {paper['title']}
+Paper Abstract: {paper['abstract'][:500]}
+
+Answer with ONLY ONE WORD: YES or NO"""
 
         try:
             time.sleep(1.2)
