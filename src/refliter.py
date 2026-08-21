@@ -9,7 +9,7 @@ DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "").strip()
 
 # 如果环境变量为空，请务必在这里填入你真正的 sk-xxx Key（不要保留中文字符）
 if not DEEPSEEK_API_KEY or "你的Key" in DEEPSEEK_API_KEY:
-    DEEPSEEK_API_KEY = "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  # 请替换为你的真实 API Key
+    DEEPSEEK_API_KEY = "sk-1"  # 请替换为你的真实 API Key
 
 # 过滤掉所有非 ASCII 字符，防止 latin-1 编码报错
 DEEPSEEK_API_KEY = re.sub(r"[^\x00-\x7F]+", "", DEEPSEEK_API_KEY).strip()
