@@ -346,7 +346,7 @@ def ai_filter_papers(papers):
         "Return only YES or NO."
     )
 
-       for paper in papers:
+    for paper in papers:
         prompt = f"""You are a wildlife biologist reviewing papers for a database focused exclusively on WILD VERTEBRATES.
 
 INCLUDE only if the paper DIRECTLY studies one or more of:
