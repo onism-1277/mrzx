@@ -2,10 +2,7 @@
 import papers from '../data/papers.json';
 
 const pageTitle = "论文标注审查";
-
-// Base64 encode papers data to avoid JSON parsing issues in HTML
-const papersJson = JSON.stringify(papers);
-const papersBase64 = Buffer.from(papersJson, 'utf-8').toString('base64');
+const papersJson = JSON.stringify(papers).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
 ---
 
 <!DOCTYPE html>
@@ -41,8 +38,6 @@ const papersBase64 = Buffer.from(papersJson, 'utf-8').toString('base64');
       .done { text-align: center; padding: 2rem; color: #27ae60; font-size: 1.2rem; }
       .tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; margin-right: 0.5rem; }
       .tag.ai { background: #e8f0fe; color: #4a90d9; }
-      .tag.relevant { background: #d5f5e3; color: #27ae60; }
-      .tag.not-relevant { background: #fadbd8; color: #e74c3c; }
     </style>
   </head>
   <body>
@@ -68,12 +63,11 @@ const papersBase64 = Buffer.from(papersJson, 'utf-8').toString('base64');
     </div>
 
     <script>
-      const rawPapers = JSON.parse(atob('{papersBase64}'));
+      const rawPapers = {papersJson};
 
       let currentIndex = 0;
       const annotations = JSON.parse(localStorage.getItem('annotations') || '{}');
 
-      // Skip already annotated papers
       while (currentIndex < rawPapers.length && annotations[rawPapers[currentIndex].pmid]) {
         currentIndex++;
       }
@@ -136,7 +130,6 @@ const papersBase64 = Buffer.from(papersJson, 'utf-8').toString('base64');
       function goBack() {
         if (currentIndex > 0) {
           currentIndex--;
-          // Remove the annotation for this paper
           const paper = rawPapers[currentIndex];
           delete annotations[paper.pmid];
           localStorage.setItem('annotations', JSON.stringify(annotations));
