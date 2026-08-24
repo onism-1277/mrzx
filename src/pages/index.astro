@@ -82,6 +82,8 @@ const totalCount = dailyPapers.length;
       .empty-state { text-align: center; padding: 3rem 1rem; color: #999; }
       .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
       .summary { text-align: center; color: #888; margin-bottom: 0.5rem; font-size: 0.95rem; }
+      .btn-fav { background: none; border: 1px solid #e74c3c; color: #e74c3c; padding: 3px 12px; border-radius: 15px; cursor: pointer; font-size: 0.75rem; margin-top: 0.5rem; transition: all 0.2s; }
+      .btn-fav:hover { background: #e74c3c; color: white; }
     </style>
   </head>
   <body>
@@ -94,6 +96,7 @@ const totalCount = dailyPapers.length;
         <a href="/mrzx/weekly" class="tab">Weekly</a>
         <a href="/mrzx/monthly" class="tab">Monthly</a>
         <a href="/mrzx/history" class="tab">📚 History</a>
+        <a href="/mrzx/favorites" class="tab">📁 Favorites</a>
       </div>
 
       {journals.length === 0 ? (
@@ -126,6 +129,15 @@ const totalCount = dailyPapers.length;
                     <span> / {paper.authors}</span>
                   </div>
                   {paper.abstract && <p class="abstract">{paper.abstract.slice(0, 200)}{paper.abstract.length > 200 ? '...' : ''}</p>}
+                  <button 
+                    class="btn-fav" 
+                    data-pmid={paper.pmid}
+                    data-title={paper.title}
+                    data-title-cn={paper.title_cn || ''}
+                    data-journal={paper.journal}
+                    data-date={paper.date}
+                    data-url={paper.url}
+                  >❤️ 收藏</button>
                 </article>
               ))}
             </div>
@@ -133,5 +145,78 @@ const totalCount = dailyPapers.length;
         ))
       )}
     </div>
+
+    <script>
+      document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('btn-fav')) {
+          const btn = e.target;
+          const data = {
+            pmid: btn.dataset.pmid,
+            title: btn.dataset.title,
+            title_cn: btn.dataset.titleCn || '',
+            journal: btn.dataset.journal,
+            date: btn.dataset.date,
+            url: btn.dataset.url,
+          };
+          addToFavorites(data);
+        }
+      });
+
+      function addToFavorites(data) {
+        const token = localStorage.getItem('gh_token');
+        if (!token) {
+          alert('Please set GitHub Token on Favorites page first');
+          return;
+        }
+
+        fetch(`https://api.github.com/repos/onism-1277/mrzx/contents/favorites.json`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(r => {
+          if (r.status === 404) {
+            return { content: null, sha: null };
+          }
+          return r.json();
+        })
+        .then(existing => {
+          let favorites;
+          let sha = null;
+
+          if (existing.content) {
+            favorites = JSON.parse(atob(existing.content));
+            sha = existing.sha;
+          } else {
+            favorites = { collections: ["默认收藏夹"], favorites: {} };
+          }
+
+          favorites.favorites[data.pmid] = {
+            title: data.title,
+            title_cn: data.title_cn,
+            journal: data.journal,
+            date: data.date,
+            url: data.url,
+            collection: "默认收藏夹",
+            addedAt: new Date().toISOString().slice(0, 10)
+          };
+
+          const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(favorites, null, 2))));
+
+          return fetch(`https://api.github.com/repos/onism-1277/mrzx/contents/favorites.json`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              message: `add favorite: ${data.pmid}`,
+              content: newContent,
+              ...(sha ? { sha } : {})
+            })
+          });
+        })
+        .then(() => alert('✅ 已收藏'))
+        .catch(e => alert('收藏失败: ' + e.message));
+      }
+    </script>
   </body>
 </html>
