@@ -1,213 +1,174 @@
----
-const pageTitle = "我的收藏夹";
----
+<script>
+const REPO = 'onism-1277/mrzx';
+const FILE_PATH = 'favorites.json';
+let currentFavorites = null;
+let currentSha = null;
 
-<!DOCTYPE html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{pageTitle}</title>
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f5f5; color: #333; }
-      .container { max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }
-      h1 { text-align: center; margin-bottom: 0.5rem; font-size: 1.8rem; }
-      .tabs { display: flex; justify-content: center; gap: 0.5rem; margin: 1.5rem 0; flex-wrap: wrap; }
-      .tab { padding: 0.5rem 1.2rem; border: 2px solid #4a90d9; border-radius: 20px; cursor: pointer; background: white; color: #4a90d9; font-size: 0.9rem; transition: all 0.2s; text-decoration: none; }
-      .tab:hover, .tab.active { background: #4a90d9; color: white; }
+function getToken() {
+  return localStorage.getItem('gh_token') || '';
+}
 
-      .token-box { background: white; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; }
-      .token-box input { padding: 0.5rem; width: 300px; border: 1px solid #ccc; border-radius: 4px; margin-right: 0.5rem; }
-      .token-box button { padding: 0.5rem 1rem; background: #4a90d9; color: white; border: none; border-radius: 4px; cursor: pointer; }
+function saveToken() {
+  const tokenInput = document.getElementById('tokenInput');
+  const token = tokenInput ? tokenInput.value.trim() : '';
+  if (token) {
+    localStorage.setItem('gh_token', token);
+    location.reload();
+  }
+}
 
-      .collection-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
-      .collection-title { font-size: 1.2rem; font-weight: bold; color: #2c3e50; }
-      .btn-add-coll { background: #27ae60; color: white; border: none; padding: 5px 15px; border-radius: 15px; cursor: pointer; font-size: 0.8rem; }
+async function loadFavorites() {
+  const token = getToken();
+  const tokenBox = document.getElementById('tokenBox');
+  const container = document.getElementById('favoritesContainer');
 
-      .collection-section { margin-bottom: 1.5rem; }
-      .paper { background: white; border-radius: 8px; padding: 1rem; margin-bottom: 0.5rem; border-left: 3px solid #4a90d9; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-      .paper-title { font-size: 0.95rem; margin-bottom: 0.3rem; }
-      .paper-title a { color: #2c3e50; text-decoration: none; }
-      .paper-title a:hover { text-decoration: underline; color: #4a90d9; }
-      .paper-title-cn { font-size: 0.85rem; color: #666; font-style: italic; margin-bottom: 0.3rem; }
-      .paper-meta { font-size: 0.78rem; color: #999; display: flex; justify-content: space-between; align-items: center; }
-      .btn-remove { background: none; border: 1px solid #e74c3c; color: #e74c3c; padding: 2px 10px; border-radius: 10px; cursor: pointer; font-size: 0.7rem; }
-      .btn-remove:hover { background: #e74c3c; color: white; }
-      .empty { text-align: center; color: #999; padding: 2rem; }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1>📁 {pageTitle}</h1>
+  if (!token) {
+    tokenBox.style.display = 'block';
+    container.innerHTML = '<p class="empty">请先设置 GitHub Token</p>';
+    return;
+  }
 
-      <div class="tabs">
-        <a href="/mrzx/" class="tab">Daily</a>
-        <a href="/mrzx/weekly" class="tab">Weekly</a>
-        <a href="/mrzx/monthly" class="tab">Monthly</a>
-        <a href="/mrzx/history" class="tab">History</a>
-        <a href="/mrzx/favorites" class="tab active">📁 Favorites</a>
-      </div>
+  tokenBox.style.display = 'none';
 
-      <div id="tokenBox" class="token-box" style="display:none;">
-        <input type="password" id="tokenInput" placeholder="粘贴 GitHub Token">
-        <button onclick="saveToken()">保存</button>
-      </div>
+  try {
+    const resp = await fetch('https://api.github.com/repos/' + REPO + '/contents/' + FILE_PATH, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
 
-      <div id="favoritesContainer">
-        <p class="empty">加载中...</p>
-      </div>
-    </div>
+    if (resp.status === 404) {
+      currentFavorites = { collections: ["默认收藏夹"], favorites: {} };
+      currentSha = null;
+      renderFavorites();
+      return;
+    }
 
-    <script>
-      const REPO = 'onism-1277/mrzx';
-      const FILE_PATH = 'favorites.json';
-      let currentFavorites = null;
-      let currentSha = null;
+    const data = await resp.json();
+    currentSha = data.sha;
+    currentFavorites = JSON.parse(atob(data.content));
+    renderFavorites();
+  } catch (e) {
+    container.innerHTML = '<p class="empty">加载失败: ' + e.message + '</p>';
+  }
+}
 
-      function getToken() {
-        return localStorage.getItem('gh_token') || '';
+function renderFavorites() {
+  const collections = currentFavorites.collections || [];
+  const favorites = currentFavorites.favorites || {};
+  const container = document.getElementById('favoritesContainer');
+
+  if (collections.length === 0) {
+    container.innerHTML = '<p class="empty">暂无收藏</p>';
+    return;
+  }
+
+  let html = '';
+  html += '<div style="text-align:center;margin-bottom:1rem;">' +
+    '<input type="text" id="newCollectionName" placeholder="新收藏夹名称" style="padding:0.4rem;border:1px solid #ccc;border-radius:4px;">' +
+    '<button onclick="addCollection()" style="padding:0.4rem 1rem;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">+ 新建收藏夹</button>' +
+    '</div>';
+
+  for (let i = 0; i < collections.length; i++) {
+    const coll = collections[i];
+    const papers = [];
+    for (const key in favorites) {
+      if (favorites[key].collection === coll) {
+        papers.push({ key: key, data: favorites[key] });
       }
+    }
 
-      function saveToken() {
-        const token = document.getElementById('tokenInput').value.trim();
-        if (token) {
-          localStorage.setItem('gh_token', token);
-          location.reload();
-        }
+    html += '<div class="collection-section">';
+    html += '<div class="collection-header">' +
+      '<span class="collection-title">📂 ' + coll + ' (' + papers.length + ')</span>' +
+      (coll !== '默认收藏夹' ? '<button class="btn-remove" onclick="deleteCollection(\'' + coll + '\')">删除收藏夹</button>' : '') +
+      '</div>';
+
+    if (papers.length === 0) {
+      html += '<p class="empty">空</p>';
+    }
+
+    for (let j = 0; j < papers.length; j++) {
+      const p = papers[j].data;
+      const pmid = papers[j].key;
+      html += '<div class="paper">';
+      html += '<div class="paper-title"><a href="' + p.url + '" target="_blank" rel="noopener">' + p.title + '</a></div>';
+      if (p.title_cn) {
+        html += '<div class="paper-title-cn">' + p.title_cn + '</div>';
       }
+      html += '<div class="paper-meta">' +
+        '<span>' + (p.journal || '') + ' · ' + (p.date || '') + ' · 收藏于 ' + (p.addedAt || '') + '</span>' +
+        '<button class="btn-remove" onclick="removeFavorite(\'' + pmid + '\')">移除</button>' +
+        '</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
 
-      async function loadFavorites() {
-        const token = getToken();
-        if (!token) {
-          document.getElementById('tokenBox').style.display = 'block';
-          document.getElementById('favoritesContainer').innerHTML = 
-            '<p class="empty">请先设置 GitHub Token</p>';
-          return;
-        }
+  container.innerHTML = html;
+}
 
-        document.getElementById('tokenBox').style.display = 'none';
+async function saveFavorites() {
+  const token = getToken();
+  const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(currentFavorites, null, 2))));
 
-        try {
-          const resp = await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE_PATH}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
+  const resp = await fetch('https://api.github.com/repos/' + REPO + '/contents/' + FILE_PATH, {
+    method: 'PUT',
+    headers: {
+      'Authorization': 'Bearer ' + token,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      message: 'update favorites',
+      content: newContent,
+      ...(currentSha ? { sha: currentSha } : {})
+    })
+  });
+  const data = await resp.json();
+  currentSha = data.content.sha;
+}
 
-          if (resp.status === 404) {
-            currentFavorites = { collections: ["默认收藏夹"], favorites: {} };
-            currentSha = null;
-            renderFavorites();
-            return;
-          }
+async function addCollection() {
+  const nameInput = document.getElementById('newCollectionName');
+  const name = nameInput ? nameInput.value.trim() : '';
+  if (!name) {
+    alert('请输入收藏夹名称');
+    return;
+  }
+  if (currentFavorites.collections.indexOf(name) === -1) {
+    currentFavorites.collections.push(name);
+    await saveFavorites();
+    renderFavorites();
+  } else {
+    alert('收藏夹已存在');
+  }
+}
 
-          const data = await resp.json();
-          currentSha = data.sha;
-          currentFavorites = JSON.parse(atob(data.content));
-          renderFavorites();
-        } catch (e) {
-          document.getElementById('favoritesContainer').innerHTML = 
-            `<p class="empty">加载失败: ${e.message}</p>`;
-        }
-      }
+async function deleteCollection(name) {
+  if (!confirm('确定删除收藏夹 "' + name + '" 吗？')) return;
+  currentFavorites.collections = currentFavorites.collections.filter(function(c) { return c !== name; });
+  for (const key in currentFavorites.favorites) {
+    if (currentFavorites.favorites[key].collection === name) {
+      currentFavorites.favorites[key].collection = '默认收藏夹';
+    }
+  }
+  await saveFavorites();
+  renderFavorites();
+}
 
-      function renderFavorites() {
-        const collections = currentFavorites.collections || [];
-        const favorites = currentFavorites.favorites || {};
-        const container = document.getElementById('favoritesContainer');
+async function removeFavorite(pmid) {
+  if (!confirm('确定移除这篇论文吗？')) return;
+  delete currentFavorites.favorites[pmid];
+  await saveFavorites();
+  renderFavorites();
+}
 
-        if (collections.length === 0) {
-          container.innerHTML = '<p class="empty">暂无收藏</p>';
-          return;
-        }
+// Event listener for save button
+document.addEventListener('DOMContentLoaded', function() {
+  const saveBtn = document.getElementById('saveTokenBtn');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', saveToken);
+  }
+});
 
-        let html = '';
-        html += `<div style="text-align:center;margin-bottom:1rem;">
-          <input type="text" id="newCollectionName" placeholder="新收藏夹名称" style="padding:0.4rem;border:1px solid #ccc;border-radius:4px;">
-          <button onclick="addCollection()" style="padding:0.4rem 1rem;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">+ 新建收藏夹</button>
-        </div>`;
-
-        for (const coll of collections) {
-          const papers = Object.values(favorites).filter(f => f.collection === coll);
-          html += `<div class="collection-section">`;
-          html += `<div class="collection-header">
-            <span class="collection-title">📂 ${coll} (${papers.length})</span>
-            ${coll !== '默认收藏夹' ? `<button class="btn-remove" onclick="deleteCollection('${coll}')">删除收藏夹</button>` : ''}
-          </div>`;
-
-          if (papers.length === 0) {
-            html += '<p class="empty">空</p>';
-          }
-
-          for (const p of papers) {
-            html += `<div class="paper">`;
-            html += `<div class="paper-title"><a href="${p.url}" target="_blank" rel="noopener">${p.title}</a></div>`;
-            if (p.title_cn) html += `<div class="paper-title-cn">${p.title_cn}</div>`;
-            html += `<div class="paper-meta">`;
-            html += `<span>${p.journal || ''} · ${p.date || ''} · 收藏于 ${p.addedAt || ''}</span>`;
-            html += `<button class="btn-remove" onclick="removeFavorite('${Object.keys(favorites).find(k => favorites[k] === p)}')">移除</button>`;
-            html += `</div>`;
-            html += `</div>`;
-          }
-          html += '</div>';
-        }
-        container.innerHTML = html;
-      }
-
-      async function saveFavorites() {
-        const token = getToken();
-        const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(currentFavorites, null, 2))));
-
-        const resp = await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE_PATH}`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            message: 'update favorites',
-            content: newContent,
-            ...(currentSha ? { sha: currentSha } : {})
-          })
-        });
-        const data = await resp.json();
-        currentSha = data.content.sha;
-      }
-
-      async function addCollection() {
-        const name = document.getElementById('newCollectionName').value.trim();
-        if (!name) {
-          alert('请输入收藏夹名称');
-          return;
-        }
-        if (!currentFavorites.collections.includes(name)) {
-          currentFavorites.collections.push(name);
-          await saveFavorites();
-          renderFavorites();
-        } else {
-          alert('收藏夹已存在');
-        }
-      }
-
-      async function deleteCollection(name) {
-        if (!confirm(`确定删除收藏夹 "${name}" 吗？其中的论文不会被删除。`)) return;
-        currentFavorites.collections = currentFavorites.collections.filter(c => c !== name);
-        for (const key in currentFavorites.favorites) {
-          if (currentFavorites.favorites[key].collection === name) {
-            currentFavorites.favorites[key].collection = '默认收藏夹';
-          }
-        }
-        await saveFavorites();
-        renderFavorites();
-      }
-
-      async function removeFavorite(pmid) {
-        if (!confirm('确定移除这篇论文吗？')) return;
-        delete currentFavorites.favorites[pmid];
-        await saveFavorites();
-        renderFavorites();
-      }
-
-      loadFavorites();
-    </script>
-  </body>
-</html>
+// Initialize
+loadFavorites();
+</script>
