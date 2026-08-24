@@ -4,6 +4,25 @@ const FILE_PATH = 'favorites.json';
 let currentFavorites = null;
 let currentSha = null;
 
+// 工具函数：安全解码包含中文/UTF-8 的 Base64
+function utf8Atob(str) {
+  const cleanStr = str.replace(/\s/g, ''); // 清除 GitHub 返回的 Base64 换行符
+  return decodeURIComponent(
+    Array.prototype.map.call(atob(cleanStr), function (c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join('')
+  );
+}
+
+// 工具函数：安全编码包含中文/UTF-8 的 Base64
+function utf8Btoa(str) {
+  return btoa(
+    encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function (match, p1) {
+      return String.fromCharCode('0x' + p1);
+    })
+  );
+}
+
 function getToken() {
   return localStorage.getItem('gh_token') || '';
 }
@@ -22,17 +41,22 @@ async function loadFavorites() {
   const tokenBox = document.getElementById('tokenBox');
   const container = document.getElementById('favoritesContainer');
 
+  if (!container) return;
+
   if (!token) {
-    tokenBox.style.display = 'block';
+    if (tokenBox) tokenBox.style.display = 'block';
     container.innerHTML = '<p class="empty">请先设置 GitHub Token</p>';
     return;
   }
 
-  tokenBox.style.display = 'none';
+  if (tokenBox) tokenBox.style.display = 'none';
 
   try {
     const resp = await fetch('https://api.github.com/repos/' + REPO + '/contents/' + FILE_PATH, {
-      headers: { 'Authorization': 'Bearer ' + token }
+      headers: { 
+        'Authorization': 'Bearer ' + token,
+        'Accept': 'application/vnd.github.v3+json'
+      }
     });
 
     if (resp.status === 404) {
@@ -42,9 +66,14 @@ async function loadFavorites() {
       return;
     }
 
+    if (!resp.ok) {
+      throw new Error(`请求失败 (${resp.status}): ${resp.statusText}`);
+    }
+
     const data = await resp.json();
     currentSha = data.sha;
-    currentFavorites = JSON.parse(atob(data.content));
+    // 使用 UTF-8 安全解码
+    currentFavorites = JSON.parse(utf8Atob(data.content));
     renderFavorites();
   } catch (e) {
     container.innerHTML = '<p class="empty">加载失败: ' + e.message + '</p>';
@@ -52,9 +81,11 @@ async function loadFavorites() {
 }
 
 function renderFavorites() {
-  const collections = currentFavorites.collections || [];
-  const favorites = currentFavorites.favorites || {};
+  const collections = (currentFavorites && currentFavorites.collections) || [];
+  const favorites = (currentFavorites && currentFavorites.favorites) || {};
   const container = document.getElementById('favoritesContainer');
+
+  if (!container) return;
 
   if (collections.length === 0) {
     container.innerHTML = '<p class="empty">暂无收藏</p>';
@@ -63,7 +94,7 @@ function renderFavorites() {
 
   let html = '';
   html += '<div style="text-align:center;margin-bottom:1rem;">' +
-    '<input type="text" id="newCollectionName" placeholder="新收藏夹名称" style="padding:0.4rem;border:1px solid #ccc;border-radius:4px;">' +
+    '<input type="text" id="newCollectionName" placeholder="新收藏夹名称" style="padding:0.4rem;border:1px solid #ccc;border-radius:4px;margin-right:0.5rem;">' +
     '<button onclick="addCollection()" style="padding:0.4rem 1rem;background:#27ae60;color:white;border:none;border-radius:4px;cursor:pointer;">+ 新建收藏夹</button>' +
     '</div>';
 
@@ -71,7 +102,7 @@ function renderFavorites() {
     const coll = collections[i];
     const papers = [];
     for (const key in favorites) {
-      if (favorites[key].collection === coll) {
+      if (favorites[key] && favorites[key].collection === coll) {
         papers.push({ key: key, data: favorites[key] });
       }
     }
@@ -79,7 +110,7 @@ function renderFavorites() {
     html += '<div class="collection-section">';
     html += '<div class="collection-header">' +
       '<span class="collection-title">📂 ' + coll + ' (' + papers.length + ')</span>' +
-      (coll !== '默认收藏夹' ? '<button class="btn-remove" onclick="deleteCollection(\'' + coll + '\')">删除收藏夹</button>' : '') +
+      (coll !== '默认收藏夹' ? '<button class="btn-remove" onclick="deleteCollection(\'' + coll.replace(/'/g, "\\'") + '\')">删除收藏夹</button>' : '') +
       '</div>';
 
     if (papers.length === 0) {
@@ -96,7 +127,7 @@ function renderFavorites() {
       }
       html += '<div class="paper-meta">' +
         '<span>' + (p.journal || '') + ' · ' + (p.date || '') + ' · 收藏于 ' + (p.addedAt || '') + '</span>' +
-        '<button class="btn-remove" onclick="removeFavorite(\'' + pmid + '\')">移除</button>' +
+        '<button class="btn-remove" onclick="removeFavorite(\'' + pmid.replace(/'/g, "\\'") + '\')">移除</button>' +
         '</div>';
       html += '</div>';
     }
@@ -108,22 +139,31 @@ function renderFavorites() {
 
 async function saveFavorites() {
   const token = getToken();
-  const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(currentFavorites, null, 2))));
+  if (!token) return;
 
-  const resp = await fetch('https://api.github.com/repos/' + REPO + '/contents/' + FILE_PATH, {
-    method: 'PUT',
-    headers: {
-      'Authorization': 'Bearer ' + token,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      message: 'update favorites',
-      content: newContent,
-      ...(currentSha ? { sha: currentSha } : {})
-    })
-  });
-  const data = await resp.json();
-  currentSha = data.content.sha;
+  // 使用 UTF-8 安全编码
+  const newContent = utf8Btoa(JSON.stringify(currentFavorites, null, 2));
+
+  try {
+    const resp = await fetch('https://api.github.com/repos/' + REPO + '/contents/' + FILE_PATH, {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: 'update favorites',
+        content: newContent,
+        ...(currentSha ? { sha: currentSha } : {})
+      })
+    });
+    const data = await resp.json();
+    if (data.content && data.content.sha) {
+      currentSha = data.content.sha;
+    }
+  } catch (e) {
+    alert('保存失败: ' + e.message);
+  }
 }
 
 async function addCollection() {
@@ -132,6 +172,9 @@ async function addCollection() {
   if (!name) {
     alert('请输入收藏夹名称');
     return;
+  }
+  if (!currentFavorites.collections) {
+    currentFavorites.collections = [];
   }
   if (currentFavorites.collections.indexOf(name) === -1) {
     currentFavorites.collections.push(name);
@@ -146,7 +189,7 @@ async function deleteCollection(name) {
   if (!confirm('确定删除收藏夹 "' + name + '" 吗？')) return;
   currentFavorites.collections = currentFavorites.collections.filter(function(c) { return c !== name; });
   for (const key in currentFavorites.favorites) {
-    if (currentFavorites.favorites[key].collection === name) {
+    if (currentFavorites.favorites[key] && currentFavorites.favorites[key].collection === name) {
       currentFavorites.favorites[key].collection = '默认收藏夹';
     }
   }
@@ -161,14 +204,23 @@ async function removeFavorite(pmid) {
   renderFavorites();
 }
 
-// Event listener for save button
+// 显式挂载到 window 确保 onclick 事件顺利触发（针对 Astro / ES Module 环境）
+window.addCollection = addCollection;
+window.deleteCollection = deleteCollection;
+window.removeFavorite = removeFavorite;
+window.saveToken = saveToken;
+
+// 初始化绑定与加载
 document.addEventListener('DOMContentLoaded', function() {
   const saveBtn = document.getElementById('saveTokenBtn');
   if (saveBtn) {
     saveBtn.addEventListener('click', saveToken);
   }
+  loadFavorites();
 });
 
-// Initialize
-loadFavorites();
+// 若脚本延迟加载，兜底直接运行一次
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  loadFavorites();
+}
 </script>
