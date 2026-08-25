@@ -183,21 +183,21 @@ const totalCount = weekPapers.length;
           let favorites;
           let sha = null;
 
-          if (existing.content) {
-            favorites = JSON.parse(atob(existing.content));
-            sha = existing.sha;
-          } else {
-            favorites = { collections: ["默认收藏夹"], favorites: {} };
+          const coll = prompt('收藏到哪个收藏夹？\n可选：' + favorites.collections.join(', '), '默认收藏夹');
+          const finalColl = coll || '默认收藏夹';
+
+          if (favorites.collections.indexOf(finalColl) === -1) {
+           favorites.collections.push(finalColl);
           }
 
           favorites.favorites[data.pmid] = {
-            title: data.title,
-            title_cn: data.title_cn,
-            journal: data.journal,
-            date: data.date,
-            url: data.url,
-            collection: "默认收藏夹",
-            addedAt: new Date().toISOString().slice(0, 10)
+           title: data.title,
+           title_cn: data.title_cn,
+           journal: data.journal,
+           date: data.date,
+           url: data.url,
+           collection: finalColl,
+           addedAt: new Date().toISOString().slice(0, 10)
           };
 
           const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(favorites, null, 2))));

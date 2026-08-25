@@ -63,11 +63,19 @@ const pageTitle = "我的收藏夹";
 
       function utf8Atob(str) {
         const cleanStr = str.replace(/\s/g, '');
-        return decodeURIComponent(
-          Array.prototype.map.call(atob(cleanStr), function (c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-          }).join('')
-        );
+        try {
+          return decodeURIComponent(escape(atob(cleanStr)));
+        } catch (e) {
+          try {
+            return decodeURIComponent(
+              Array.prototype.map.call(atob(cleanStr), function (c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+              }).join('')
+            );
+          } catch (e2) {
+            return atob(cleanStr);
+          }
+        }
       }
 
       function utf8Btoa(str) {
