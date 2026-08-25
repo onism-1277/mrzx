@@ -1,4 +1,25 @@
 {
-  "collections": ["默认收藏夹"],
-  "favorites": {}
+  "collections": [
+    "Ã©Â»ÂÃ¨Â®Â¤Ã¦ÂÂ¶Ã¨ÂÂÃ¥Â¤Â¹"
+  ],
+  "favorites": {
+    "42204851": {
+      "title": "Uncovering correlates of decline and critical refuges for a threatened terrestrial mammal.",
+      "title_cn": "æ­ç¤ºåå¨èéçåºä¹³å¨ç©ç§ç¾¤è¡°éçç¸å³å ç´ åå³é®åºæ¤æã",
+      "journal": "Conserv Biol",
+      "date": "2026-08-01",
+      "url": "https://doi.org/10.1111/cobi.70314",
+      "collection": "é»è®¤æ¶èå¤¹",
+      "addedAt": "2026-08-25"
+    },
+    "42574631": {
+      "title": "How illegal wildlife trade adheres to and defies conventional market behavior.",
+      "title_cn": "非法野生动物贸易如何遵循并违背常规市场行为。",
+      "journal": "Proc Natl Acad Sci U S A",
+      "date": "2026-08-18",
+      "url": "https://doi.org/10.1073/pnas.2525056123",
+      "collection": "默认收藏夹",
+      "addedAt": "2026-08-25"
+    }
+  }
 }
