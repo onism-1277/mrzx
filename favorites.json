@@ -1,4 +1,16 @@
 {
-  "collections": ["默认收藏夹"],
-  "favorites": {}
+  "collections": [
+    "é»è®¤æ¶èå¤¹"
+  ],
+  "favorites": {
+    "42204851": {
+      "title": "Uncovering correlates of decline and critical refuges for a threatened terrestrial mammal.",
+      "title_cn": "揭示受威胁陆生哺乳动物种群衰退的相关因素及关键庇护所。",
+      "journal": "Conserv Biol",
+      "date": "2026-08-01",
+      "url": "https://doi.org/10.1111/cobi.70314",
+      "collection": "默认收藏夹",
+      "addedAt": "2026-08-25"
+    }
+  }
 }
