@@ -184,7 +184,7 @@ const totalCount = weekPapers.length;
           let sha = null;
 
           if (existing.content) {
-            favorites = JSON.parse(atob(existing.content.replace(/\s/g, '')));
+            favorites = JSON.parse(decodeURIComponent(escape(atob(existing.content.replace(/\s/g, '')))));
             if (!favorites.collections) favorites.collections = ["默认收藏夹"];
             if (!favorites.favorites) favorites.favorites = {};
             sha = existing.sha;
