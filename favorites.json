@@ -1,4 +1,7 @@
 {
-  "collections": ["默认收藏夹"],
+  "collections": [
+    "默认收藏夹",
+    "1"
+  ],
   "favorites": {}
 }
