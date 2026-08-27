@@ -1,7 +1,8 @@
 {
   "collections": [
     "默认收藏夹",
-    "1"
+    "1",
+    "2"
   ],
   "favorites": {
     "42021118": {
@@ -38,6 +39,15 @@
       "date": "2026-08-07",
       "url": "https://doi.org/10.1126/sciadv.aef9781",
       "collection": "默认收藏夹",
+      "addedAt": "2026-08-27"
+    },
+    "42561065": {
+      "title": "Fossil evidence favors a role for vision in the modular evolution of the primate neocortex.",
+      "title_cn": "化石证据支持视觉在灵长类新皮层模块化进化中的作用。",
+      "journal": "Science",
+      "date": "2026-08-06",
+      "url": "https://doi.org/10.1126/science.aee3541",
+      "collection": "2",
       "addedAt": "2026-08-27"
     }
   }
