@@ -218,12 +218,16 @@ const pageTitle = "我的收藏夹";
               ...(currentSha ? { sha: currentSha } : {})
             })
           });
-          const data = await resp.json();
+                    const data = await resp.json();
+          if (!resp.ok) {
+            throw new Error('请求失败 (' + resp.status + ')');
+          }
           if (data.content && data.content.sha) {
             currentSha = data.content.sha;
           }
-        } catch (e) {
+                } catch (e) {
           alert('保存失败: ' + e.message);
+          throw e;
         }
       }
 

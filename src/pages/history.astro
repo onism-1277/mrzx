@@ -165,6 +165,8 @@ const totalCount = historyPapers.length;
           }
 
 
+          const finalColl = '默认收藏夹';
+
           if (favorites.collections.indexOf(finalColl) === -1) {
            favorites.collections.push(finalColl);
           }
@@ -181,7 +183,7 @@ const totalCount = historyPapers.length;
 
           const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(favorites, null, 2))));
 
-          return fetch(`https://api.github.com/repos/onism-1277/mrzx/contents/favorites.json`, {
+                    return fetch(`https://api.github.com/repos/onism-1277/mrzx/contents/favorites.json`, {
             method: 'PUT',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -192,6 +194,11 @@ const totalCount = historyPapers.length;
               content: newContent,
               ...(sha ? { sha } : {})
             })
+          }).then(response => {
+            if (!response.ok) {
+              throw new Error(`保存失败 (${response.status})`);
+            }
+            return response;
           });
         })
         .then(() => alert('✅ 已收藏'))
