@@ -1,7 +1,8 @@
 {
   "collections": [
     "默认收藏夹",
-    "1"
+    "1",
+    "2"
   ],
   "favorites": {
     "42021118": {
@@ -20,6 +21,33 @@
       "date": "2026-08-01",
       "url": "https://doi.org/10.1111/cobi.70314",
       "collection": "默认收藏夹",
+      "addedAt": "2026-08-27"
+    },
+    "42520129": {
+      "title": "Pair living emerged early in placental mammals.",
+      "title_cn": "胎盘哺乳动物早期便出现了成对生活。",
+      "journal": "Proc Natl Acad Sci U S A",
+      "date": "2026-08-04",
+      "url": "https://doi.org/10.1073/pnas.2528458123",
+      "collection": "默认收藏夹",
+      "addedAt": "2026-08-27"
+    },
+    "42555717": {
+      "title": "Global patterns and drivers of extinction risk in island endemic terrestrial vertebrates.",
+      "title_cn": "岛屿特有陆生脊椎动物灭绝风险的全球格局与驱动因素",
+      "journal": "Sci Adv",
+      "date": "2026-08-07",
+      "url": "https://doi.org/10.1126/sciadv.aef9781",
+      "collection": "默认收藏夹",
+      "addedAt": "2026-08-27"
+    },
+    "42561065": {
+      "title": "Fossil evidence favors a role for vision in the modular evolution of the primate neocortex.",
+      "title_cn": "化石证据支持视觉在灵长类新皮层模块化进化中的作用。",
+      "journal": "Science",
+      "date": "2026-08-06",
+      "url": "https://doi.org/10.1126/science.aee3541",
+      "collection": "2",
       "addedAt": "2026-08-27"
     }
   }
