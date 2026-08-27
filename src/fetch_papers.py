@@ -597,12 +597,12 @@ if __name__ == "__main__":
         try:
             with open(output_path, "r", encoding="utf-8") as f:
                 existing_papers = json.load(f)
-        except:
+        except Exception:
             pass
 
     existing_pmids = {p.get("pmid", "") for p in existing_papers}
     for p in unique_papers:
-                if p["pmid"] not in existing_pmids:
+        if p["pmid"] not in existing_pmids:
             existing_papers.insert(0, p)
             existing_pmids.add(p["pmid"])
 
