@@ -171,11 +171,16 @@ const totalCount = weekPapers.length;
         }
 
         fetch(`https://api.github.com/repos/onism-1277/mrzx/contents/favorites.json`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: {
+            'Authorization': 'token ' + token,
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28'
+          }
         })
-        .then(r => {
-          if (r.status === 404) {
-            return { content: null, sha: null };
+                .then(async r => {
+          if (!r.ok) {
+            const error = await r.json().catch(() => ({}));
+            throw new Error((error.message || '读取收藏文件失败') + ' (' + r.status + ')');
           }
           return r.json();
         })
@@ -213,7 +218,9 @@ const totalCount = weekPapers.length;
                     return fetch(`https://api.github.com/repos/onism-1277/mrzx/contents/favorites.json`, {
             method: 'PUT',
             headers: {
-              'Authorization': `Bearer ${token}`,
+                            'Authorization': 'token ' + token,
+              'Accept': 'application/vnd.github+json',
+              'X-GitHub-Api-Version': '2022-11-28',
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
@@ -221,9 +228,10 @@ const totalCount = weekPapers.length;
               content: newContent,
               ...(sha ? { sha } : {})
             })
-          }).then(response => {
+                    }).then(async response => {
             if (!response.ok) {
-              throw new Error(`保存失败 (${response.status})`);
+              const error = await response.json().catch(() => ({}));
+              throw new Error((error.message || '保存收藏失败') + ' (' + response.status + ')');
             }
             return response;
           });
