@@ -241,6 +241,7 @@ def parse_rss(xml_text, journal_name):
                 "title": title.strip(),
                 "title_cn": "",
                 "title_cn_summary": "",
+                "ai_summary": "",
                 "journal": journal_name,
                 "date": pub_date,
                 "authors": "",
@@ -317,6 +318,7 @@ def parse_pubmed_xml(xml_text, journal):
                 "title": title.strip(),
                 "title_cn": "",
                 "title_cn_summary": "",
+                "ai_summary": "",
                 "journal": journal,
                 "date": pub_date,
                 "authors": author_str,
@@ -476,6 +478,76 @@ def get_category(keyword):
     return "other"
 
 
+def summarize_papers(papers):
+    """Generate and persist one Chinese AI summary per paper.
+
+    A non-empty ai_summary is treated as final so later daily runs never
+    regenerate or overwrite a summary that has already been saved.
+    """
+    if not DEEPSEEK_API_KEY:
+        print("\nNo DEEPSEEK_API_KEY, skip AI summaries")
+        return papers
+
+    pending = [p for p in papers if p.get("title") and not p.get("ai_summary", "").strip()]
+    print(f"\nGenerating AI summaries for {len(pending)} papers...")
+    headers = {
+        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    system_prompt = (
+        "你是严谨的野生动物与生命科学论文编辑。只能依据用户提供的论文信息写中文总结，"
+        "严禁虚构国家、机构、团队、方法、对象或结论。"
+    )
+
+    for index, paper in enumerate(pending, start=1):
+        prompt = f"""请为下面的论文生成一段中文 AI 总结，只输出总结正文，不要标题、列表、引号或解释。
+
+必须尽量遵循此模板：
+“（国家+机构+团队）通过（方法），在（研究基础/对象）的基础上，发现/发明/验证了（核心结果），获得了（进展），为（指导意义）提供了（价值）。”
+
+严格要求：
+1. 不得补充论文未提供的事实；作者、摘要中没有国家或机构时，使用“该研究团队”代替，不要猜测。
+2. 摘要没有明确方法、结果或意义时，分别用“论文报道的方法”“相关研究对象”“相应研究进展”“相关研究”作审慎表述。
+3. 保留论文结论的限定程度，不夸大因果关系或应用价值。
+4. 控制在 80—180 个中文字符。
+
+论文标题：{paper.get('title', '')}
+中文标题：{paper.get('title_cn', '')}
+期刊：{paper.get('journal', '')}
+作者：{paper.get('authors', '')}
+摘要：{paper.get('abstract', '')[:1500]}"""
+        data = {
+            "model": "deepseek-chat",
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt},
+            ],
+            "max_tokens": 300,
+            "temperature": 0.2,
+        }
+
+        for attempt in range(3):
+            try:
+                time.sleep(1.2)
+                response = requests.post(DEEPSEEK_API_URL, headers=headers, json=data, timeout=45)
+                response.raise_for_status()
+                result = response.json()
+                summary = clean_translation(
+                    (result.get("choices", [{}])[0].get("message") or {}).get("content", "")
+                )
+                if summary:
+                    paper["ai_summary"] = summary
+                    print(f"    [{index}/{len(pending)}] OK: {paper['title'][:50]}...")
+                    break
+            except Exception as e:
+                print(f"    [{index}/{len(pending)}] attempt {attempt + 1} failed: {e}")
+                time.sleep(3)
+        else:
+            print(f"    [{index}/{len(pending)}] FAILED: {paper['title'][:50]}...")
+
+    return papers
+
+
 def translate_papers(papers):
     """Translate selected paper titles after AI filtering."""
     untranslated = [paper for paper in papers if not paper.get("title_cn") and paper.get("title")]
@@ -530,11 +602,12 @@ if __name__ == "__main__":
 
     existing_pmids = {p.get("pmid", "") for p in existing_papers}
     for p in unique_papers:
-        if p["pmid"] not in existing_pmids:
+                if p["pmid"] not in existing_pmids:
             existing_papers.insert(0, p)
             existing_pmids.add(p["pmid"])
 
     existing_papers = existing_papers[:3000]
+    existing_papers = summarize_papers(existing_papers)
 
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(existing_papers, f, ensure_ascii=False, indent=2)

@@ -65,6 +65,7 @@ const totalCount = historyPapers.length;
       .paper-title a { color: #2c3e50; text-decoration: none; }
       .paper-title a:hover { text-decoration: underline; color: #4a90d9; }
       .paper-title-cn { font-size: 0.85rem; color: #666; font-style: italic; margin-bottom: 0.3rem; }
+      .ai-summary { font-size: 0.88rem; color: #6a4c93; background: #faf7ff; border-left: 3px solid #9b7ede; padding: 0.55rem 0.7rem; margin: 0.6rem 0; line-height: 1.6; }
       .paper-meta { font-size: 0.78rem; color: #999; }
       .category-tag { display: inline-block; background: #e8f0fe; color: #4a90d9; padding: 1px 8px; border-radius: 10px; font-size: 0.7rem; margin-right: 0.5rem; }
       .empty-state { text-align: center; padding: 3rem 1rem; color: #999; }
@@ -99,6 +100,7 @@ const totalCount = historyPapers.length;
                   <a href={paper.url} target="_blank" rel="noopener">{paper.title}</a>
                 </h3>
                 {paper.title_cn && <p class="paper-title-cn">{paper.title_cn}</p>}
+                {paper.ai_summary && <p class="ai-summary">AI总结：{paper.ai_summary}</p>}
                 <div class="paper-meta">
                   <span class="category-tag">{paper.category || 'Life Science'}</span>
                   <span>{getJournalName(paper.journal)} · {paper.date}</span>

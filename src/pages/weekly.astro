@@ -85,6 +85,7 @@ const totalCount = weekPapers.length;
       .paper-title a:hover { text-decoration: underline; color: #4a90d9; }
       .paper-title-cn { font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; font-style: italic; }
       .paper-summary { font-size: 0.85rem; color: #2e7d32; margin-bottom: 0.4rem; line-height: 1.5; }
+      .ai-summary { font-size: 0.88rem; color: #6a4c93; background: #faf7ff; border-left: 3px solid #9b7ede; padding: 0.55rem 0.7rem; margin: 0.6rem 0; line-height: 1.6; }
       .paper-meta { font-size: 0.8rem; color: #999; margin-bottom: 0.3rem; }
       .category-tag { display: inline-block; background: #e8f0fe; color: #4a90d9; padding: 1px 8px; border-radius: 10px; font-size: 0.75rem; }
       .abstract { font-size: 0.85rem; color: #555; line-height: 1.5; margin-top: 0.3rem; }
@@ -125,6 +126,7 @@ const totalCount = weekPapers.length;
                 </h3>
                 {paper.title_cn && <p class="paper-title-cn">{paper.title_cn}</p>}
                 {paper.title_cn_summary && <p class="paper-summary">📝 {paper.title_cn_summary}</p>}
+                {paper.ai_summary && <p class="ai-summary">AI总结：{paper.ai_summary}</p>}
                 <div class="paper-meta">
                   <span class="category-tag">{paper.category || 'Life Science'}</span>
                   <span class="date-tag"> / {paper.date}</span>
