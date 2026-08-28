@@ -1,76 +1,141 @@
-/* Shared clean blue visual system */
+/* Bento Grid blue design system */
 :root {
-  --blue-700: #155eef;
-  --blue-600: #2563eb;
-  --blue-100: #dbeafe;
-  --blue-50: #eff6ff;
-  --ink-900: #172b4d;
-  --ink-600: #52627a;
-  --line: #d9e2f0;
-  --surface: #ffffff;
-  --page: #f6f9fd;
-  --shadow: 0 8px 24px rgba(37, 99, 235, 0.08);
+  --bento-grid-primary: #172554;
+  --bento-grid-secondary: #f8fbff;
+  --bento-grid-accent: #2563eb;
+  --bento-grid-accent-strong: #1d4ed8;
+  --bento-grid-accent-soft: #dbeafe;
+  --bento-grid-glow: rgba(37, 99, 235, 0.22);
+  --bento-grid-line: #dbe5f2;
+  --bento-grid-muted: #64748b;
+  --bento-grid-shadow: 0 12px 32px rgba(30, 64, 175, 0.09);
+  --bento-grid-shadow-hover: 0 18px 42px rgba(30, 64, 175, 0.16);
 }
 
-html { background: var(--page); }
+* { box-sizing: border-box; }
+html { background: var(--bento-grid-secondary); }
 body {
-  background: var(--page) !important;
-  color: var(--ink-900) !important;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(147, 197, 253, .2), transparent 28rem),
+    var(--bento-grid-secondary) !important;
+  color: var(--bento-grid-primary) !important;
   font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
-  line-height: 1.5;
+  line-height: 1.55;
 }
-.container { max-width: 960px !important; padding: 2.5rem 1.25rem !important; }
-h1 { color: var(--ink-900) !important; font-weight: 750 !important; letter-spacing: -0.02em; }
-.summary, .progress { color: var(--ink-600) !important; }
-.tabs { gap: 0.6rem !important; margin: 1.75rem 0 2rem !important; }
+.container { max-width: 1040px !important; padding: 3rem 1.25rem !important; }
+h1 {
+  color: var(--bento-grid-primary) !important;
+  font-size: clamp(1.8rem, 4vw, 2.7rem) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.04em;
+  animation: bento-grid-fade-in .5s ease-out both;
+}
+.summary, .progress { color: var(--bento-grid-muted) !important; }
+.tabs {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: .7rem !important;
+  margin: 2rem 0 2.25rem !important;
+}
 .tab {
-  border: 1px solid var(--line) !important;
-  border-radius: 8px !important;
-  background: var(--surface) !important;
-  color: var(--blue-700) !important;
-  box-shadow: 0 2px 5px rgba(23, 43, 77, 0.04);
-  font-weight: 600;
-  transition: background .2s, color .2s, border-color .2s, transform .2s;
+  width: 100%;
+  border: 1px solid var(--bento-grid-line) !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, .82) !important;
+  color: var(--bento-grid-accent-strong) !important;
+  box-shadow: 0 5px 16px rgba(30, 64, 175, .06);
+  font-weight: 700;
+  text-align: center;
+  transition: transform .3s ease-out, box-shadow .3s ease-out, background .3s, color .3s;
 }
 .tab:hover, .tab.active {
-  background: var(--blue-600) !important;
-  border-color: var(--blue-600) !important;
+  background: linear-gradient(135deg, var(--bento-grid-accent-strong), var(--bento-grid-accent)) !important;
+  border-color: var(--bento-grid-accent) !important;
   color: #fff !important;
-  transform: translateY(-1px);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px var(--bento-grid-glow);
 }
+
+/* Existing journal sections become Bento cards */
 .journal-section, .month-section, .collection-section { margin-bottom: 1rem !important; }
+.journal-section {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  animation: bento-grid-fade-in .5s ease-out both;
+}
+.journal-section::before, .paper::before, .card::before, .token-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(37, 99, 235, .08), transparent 58%);
+  transition: opacity .3s ease;
+}
+.journal-section:hover::before, .paper:hover::before, .card:hover::before, .token-box:hover::before { opacity: 1; }
 .journal-header {
-  border: 1px solid var(--line) !important;
-  border-radius: 10px !important;
-  box-shadow: var(--shadow) !important;
-  padding: 1rem 1.25rem !important;
+  position: relative;
+  z-index: 1;
+  border: 1px solid var(--bento-grid-line) !important;
+  border-radius: 14px !important;
+  background: rgba(255, 255, 255, .9) !important;
+  box-shadow: var(--bento-grid-shadow) !important;
+  padding: 1.05rem 1.25rem !important;
+  transition: transform .3s ease-out, box-shadow .3s ease-out, background .3s;
 }
-.journal-header:hover { background: var(--blue-50) !important; }
-.journal-name, .month-header, .collection-title { color: var(--ink-900) !important; }
-.journal-arrow { color: var(--blue-600) !important; }
+.journal-header:hover { background: #fff !important; transform: translateY(-4px); box-shadow: var(--bento-grid-shadow-hover) !important; }
+.journal-name, .month-header, .collection-title { color: var(--bento-grid-primary) !important; }
+.journal-name { font-weight: 750 !important; }
+.journal-arrow { color: var(--bento-grid-accent) !important; transition: transform .3s ease-out; }
+.journal-section.open .journal-arrow { transform: rotate(180deg); }
+.papers-list { padding: .7rem 0 0 !important; }
+
 .paper, .card, .token-box {
-  background: var(--surface) !important;
-  border: 1px solid var(--line) !important;
-  border-left: 3px solid var(--blue-600) !important;
-  border-radius: 10px !important;
-  box-shadow: 0 4px 14px rgba(23, 43, 77, 0.06) !important;
+  position: relative;
+  overflow: hidden;
+  background: rgba(255, 255, 255, .94) !important;
+  border: 1px solid var(--bento-grid-line) !important;
+  border-left: 4px solid var(--bento-grid-accent) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 7px 20px rgba(30, 64, 175, .07) !important;
+  transition: transform .3s ease-out, box-shadow .3s ease-out;
 }
-.paper-title a, .title { color: var(--ink-900) !important; }
-.paper-title a:hover { color: var(--blue-600) !important; }
-.paper-title-cn, .title-cn { color: var(--ink-600) !important; }
+.paper:hover, .card:hover, .token-box:hover { transform: translateY(-4px); box-shadow: var(--bento-grid-shadow-hover) !important; }
+.paper-title a, .title { color: var(--bento-grid-primary) !important; }
+.paper-title a:hover { color: var(--bento-grid-accent) !important; }
+.paper-title-cn, .title-cn { color: var(--bento-grid-muted) !important; }
 .paper-meta, .meta { color: #718096 !important; }
 .paper-summary { color: #176b45 !important; }
-.ai-summary { background: var(--blue-50) !important; border-left-color: var(--blue-600) !important; color: #174ea6 !important; }
-.category-tag, .tag.ai { background: var(--blue-100) !important; color: #174ea6 !important; }
+.ai-summary { background: var(--bento-grid-accent-soft) !important; border-left-color: var(--bento-grid-accent) !important; color: #174ea6 !important; }
+.category-tag, .tag.ai { background: var(--bento-grid-accent-soft) !important; color: #174ea6 !important; }
+.month-header { border-bottom-color: var(--bento-grid-accent) !important; }
 .btn-fav, .token-box button, .btn, .btn.back {
-  border-color: var(--blue-600) !important;
-  color: var(--blue-600) !important;
+  border-color: var(--bento-grid-accent) !important;
+  color: var(--bento-grid-accent-strong) !important;
+  border-radius: 10px !important;
+  font-weight: 650;
 }
-.btn-fav:hover, .token-box button:hover, .btn:hover, .btn.back:hover {
-  background: var(--blue-600) !important;
-  color: #fff !important;
+.btn-fav:hover, .token-box button:hover, .btn:hover, .btn.back:hover { background: var(--bento-grid-accent) !important; color: #fff !important; }
+input { border: 1px solid var(--bento-grid-line) !important; border-radius: 10px !important; }
+input:focus { outline: 3px solid rgba(37, 99, 235, .16); border-color: var(--bento-grid-accent) !important; }
+.empty, .empty-state { color: var(--bento-grid-muted) !important; }
+
+@keyframes bento-grid-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-.month-header { border-bottom-color: var(--blue-600) !important; }
-input { border: 1px solid var(--line) !important; border-radius: 8px !important; }
-input:focus { outline: 3px solid rgba(37, 99, 235, .15); border-color: var(--blue-600) !important; }
-.empty, .empty-state { color: #718096 !important; }
+@keyframes bento-grid-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .7; }
+}
+
+@media (max-width: 760px) {
+  .container { padding: 2rem 1rem !important; }
+  .tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tabs .tab:last-child { grid-column: span 2; }
+}
+@media (max-width: 420px) {
+  .tabs { grid-template-columns: 1fr; }
+  .tabs .tab:last-child { grid-column: auto; }
+}
