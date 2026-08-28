@@ -31,14 +31,15 @@ function getJournalName(abbr: string): string {
 const todayStr = new Date().toISOString().slice(0, 10);
 const historyPapers = papers.filter((p) => p.date && p.date >= "2026-01-01" && p.date <= todayStr);
 
-const byMonth: Record<string, typeof historyPapers> = {};
+const byMonthJournal: Record<string, Record<string, typeof historyPapers>> = {};
 historyPapers.forEach((p) => {
   const month = p.date.slice(0, 7);
-  if (!byMonth[month]) byMonth[month] = [];
-  byMonth[month].push(p);
+  if (!byMonthJournal[month]) byMonthJournal[month] = {};
+  if (!byMonthJournal[month][p.journal]) byMonthJournal[month][p.journal] = [];
+  byMonthJournal[month][p.journal].push(p);
 });
 
-const months = Object.keys(byMonth).sort().reverse();
+const months = Object.keys(byMonthJournal).sort().reverse();
 const totalCount = historyPapers.length;
 ---
 
@@ -60,6 +61,15 @@ const totalCount = historyPapers.length;
 
       .month-section { margin-bottom: 1.5rem; }
       .month-header { font-size: 1.2rem; font-weight: bold; color: #2c3e50; margin-bottom: 0.8rem; padding-bottom: 0.5rem; border-bottom: 2px solid #4a90d9; }
+      .journal-section { margin-bottom: 0.8rem; }
+      .journal-header { background: white; border-radius: 8px; padding: 0.85rem 1.2rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: background 0.2s; }
+      .journal-header:hover { background: #e8f0fe; }
+      .journal-name { font-size: 1rem; font-weight: bold; color: #2c3e50; }
+      .journal-count { color: #888; font-size: 0.85rem; }
+      .journal-arrow { transition: transform 0.3s; font-size: 1rem; color: #4a90d9; }
+      .journal-section.open .journal-arrow { transform: rotate(180deg); }
+      .papers-list { display: none; padding: 0.5rem 0; }
+      .journal-section.open .papers-list { display: block; }
       .paper { background: white; border-radius: 8px; padding: 1rem 1.2rem; margin-bottom: 0.5rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #4a90d9; }
       .paper-title { font-size: 0.95rem; margin-bottom: 0.3rem; }
       .paper-title a { color: #2c3e50; text-decoration: none; }
@@ -94,8 +104,18 @@ const totalCount = historyPapers.length;
         months.map((month) => (
           <section class="month-section">
             <h2 class="month-header">📅 {month}</h2>
-            {byMonth[month].map((paper) => (
-              <article class="paper">
+                        {Object.keys(byMonthJournal[month]).sort().map((journal) => (
+              <div class="journal-section">
+                <div class="journal-header" onclick="this.parentElement.classList.toggle('open')">
+                  <span class="journal-name">{getJournalName(journal)}</span>
+                  <span>
+                    <span class="journal-count">{byMonthJournal[month][journal].length} 篇</span>
+                    <span class="journal-arrow">&#9660;</span>
+                  </span>
+                </div>
+                <div class="papers-list">
+                  {byMonthJournal[month][journal].map((paper) => (
+                    <article class="paper">
                 <h3 class="paper-title">
                   <a href={paper.url} target="_blank" rel="noopener">{paper.title}</a>
                 </h3>
@@ -115,6 +135,9 @@ const totalCount = historyPapers.length;
                   data-url={paper.url}
                 >❤️ 收藏</button>
               </article>
+                  ))}
+                </div>
+              </div>
             ))}
           </section>
         ))
