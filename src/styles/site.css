@@ -1,0 +1,76 @@
+/* Shared clean blue visual system */
+:root {
+  --blue-700: #155eef;
+  --blue-600: #2563eb;
+  --blue-100: #dbeafe;
+  --blue-50: #eff6ff;
+  --ink-900: #172b4d;
+  --ink-600: #52627a;
+  --line: #d9e2f0;
+  --surface: #ffffff;
+  --page: #f6f9fd;
+  --shadow: 0 8px 24px rgba(37, 99, 235, 0.08);
+}
+
+html { background: var(--page); }
+body {
+  background: var(--page) !important;
+  color: var(--ink-900) !important;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  line-height: 1.5;
+}
+.container { max-width: 960px !important; padding: 2.5rem 1.25rem !important; }
+h1 { color: var(--ink-900) !important; font-weight: 750 !important; letter-spacing: -0.02em; }
+.summary, .progress { color: var(--ink-600) !important; }
+.tabs { gap: 0.6rem !important; margin: 1.75rem 0 2rem !important; }
+.tab {
+  border: 1px solid var(--line) !important;
+  border-radius: 8px !important;
+  background: var(--surface) !important;
+  color: var(--blue-700) !important;
+  box-shadow: 0 2px 5px rgba(23, 43, 77, 0.04);
+  font-weight: 600;
+  transition: background .2s, color .2s, border-color .2s, transform .2s;
+}
+.tab:hover, .tab.active {
+  background: var(--blue-600) !important;
+  border-color: var(--blue-600) !important;
+  color: #fff !important;
+  transform: translateY(-1px);
+}
+.journal-section, .month-section, .collection-section { margin-bottom: 1rem !important; }
+.journal-header {
+  border: 1px solid var(--line) !important;
+  border-radius: 10px !important;
+  box-shadow: var(--shadow) !important;
+  padding: 1rem 1.25rem !important;
+}
+.journal-header:hover { background: var(--blue-50) !important; }
+.journal-name, .month-header, .collection-title { color: var(--ink-900) !important; }
+.journal-arrow { color: var(--blue-600) !important; }
+.paper, .card, .token-box {
+  background: var(--surface) !important;
+  border: 1px solid var(--line) !important;
+  border-left: 3px solid var(--blue-600) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 14px rgba(23, 43, 77, 0.06) !important;
+}
+.paper-title a, .title { color: var(--ink-900) !important; }
+.paper-title a:hover { color: var(--blue-600) !important; }
+.paper-title-cn, .title-cn { color: var(--ink-600) !important; }
+.paper-meta, .meta { color: #718096 !important; }
+.paper-summary { color: #176b45 !important; }
+.ai-summary { background: var(--blue-50) !important; border-left-color: var(--blue-600) !important; color: #174ea6 !important; }
+.category-tag, .tag.ai { background: var(--blue-100) !important; color: #174ea6 !important; }
+.btn-fav, .token-box button, .btn, .btn.back {
+  border-color: var(--blue-600) !important;
+  color: var(--blue-600) !important;
+}
+.btn-fav:hover, .token-box button:hover, .btn:hover, .btn.back:hover {
+  background: var(--blue-600) !important;
+  color: #fff !important;
+}
+.month-header { border-bottom-color: var(--blue-600) !important; }
+input { border: 1px solid var(--line) !important; border-radius: 8px !important; }
+input:focus { outline: 3px solid rgba(37, 99, 235, .15); border-color: var(--blue-600) !important; }
+.empty, .empty-state { color: #718096 !important; }
