@@ -25,8 +25,13 @@ jobs:
       - name: Install Python dependencies
         run: pip install requests
 
+      - name: Show backfill context
+        run: |
+          date -u
+          test -f src/data/history_backfill.json && echo "Backfill marker exists" || echo "Backfill marker does not exist"
+
       - name: Fetch and freeze missing history journals
-        run: python src/backfill_history.py
+        run: python -u src/backfill_history.py
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
 

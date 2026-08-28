@@ -33,16 +33,21 @@ def fetch_journal_history(journals, start_date, end_date):
             "behavior, animal[MeSH] OR paleontology[MeSH] OR biogeography[MeSH] OR "
             "classification[MeSH] OR biotechnology[MeSH])"
         )
-        url = (
-            f"{base_url}/esearch.fcgi?db=pubmed&term={query}"
-            f"&retmax=500&retmode=json&mindate={start_date}"
-            f"&maxdate={end_date}&datetype=pdat"
-        )
+        url = f"{base_url}/esearch.fcgi"
+        params = {
+            "db": "pubmed",
+            "term": query,
+            "retmax": 500,
+            "retmode": "json",
+            "mindate": start_date,
+            "maxdate": end_date,
+            "datetype": "pdat",
+        }
         ids = []
         for attempt in range(3):
             try:
                 time.sleep(1.5)
-                response = requests.get(url, timeout=30)
+                response = requests.get(url, params=params, timeout=30)
                 response.raise_for_status()
                 ids = response.json().get("esearchresult", {}).get("idlist", [])
                 break
@@ -88,6 +93,9 @@ def main():
     print(f"Missing PubMed journals to backfill: {len(missing_journals)}")
 
     new_papers = fetch_journal_history(missing_journals, HISTORY_START_DATE, today)
+    print(f"Raw PubMed papers collected for missing journals: {len(new_papers)}")
+    if missing_journals and not new_papers:
+        raise RuntimeError("No PubMed history data was collected; fixed marker was not created")
 
     if "野生动物学报" not in existing_journals:
         print("Fetching missing RSS journal history...")
@@ -101,6 +109,7 @@ def main():
             )
 
     filtered = ai_filter_papers(new_papers)
+    print(f"Filtered new papers: {len(filtered)}")
     unique = []
     seen = {paper.get("pmid") for paper in existing}
     for paper in filtered:
