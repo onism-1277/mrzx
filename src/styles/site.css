@@ -102,6 +102,11 @@ h1 {
   transition: transform .3s ease-out, box-shadow .3s ease-out;
 }
 .paper:hover, .card:hover, .token-box:hover { transform: translateY(-4px); box-shadow: var(--bento-grid-shadow-hover) !important; }
+.paper-title, .title {
+  font-size: 1.1rem !important;
+  line-height: 1.45;
+  letter-spacing: -0.015em;
+}
 .paper-title a, .title { color: var(--bento-grid-primary) !important; }
 .paper-title a:hover { color: var(--bento-grid-accent) !important; }
 .paper-title-cn, .title-cn { color: var(--bento-grid-muted) !important; }
