@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import time
 from datetime import datetime
 
@@ -19,20 +20,16 @@ OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "data", "papers.json")
 MARKER_PATH = os.path.join(os.path.dirname(__file__), "data", "history_backfill.json")
 HISTORY_START_DATE = "2026-01-01"
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 
 def fetch_journal_history(journals, start_date, end_date):
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
     papers = []
     for journal in journals:
         print(f"Fetching history for {journal}...")
-        query = (
-            f'"{journal}"[Journal] AND ('
-            "zoology[MeSH] OR ecology[MeSH] OR genetics[MeSH] OR "
-            "evolution[MeSH] OR genetics, population[MeSH] OR "
-            "computational biology[MeSH] OR conservation of natural resources[MeSH] OR "
-            "behavior, animal[MeSH] OR paleontology[MeSH] OR biogeography[MeSH] OR "
-            "classification[MeSH] OR biotechnology[MeSH])"
-        )
+        query = f'"{journal}"[Journal]'
         url = f"{base_url}/esearch.fcgi"
         params = {
             "db": "pubmed",
@@ -50,6 +47,7 @@ def fetch_journal_history(journals, start_date, end_date):
                 response = requests.get(url, params=params, timeout=30)
                 response.raise_for_status()
                 ids = response.json().get("esearchresult", {}).get("idlist", [])
+                print(f"  Found {len(ids)} PubMed records")
                 break
             except Exception as exc:
                 print(f"  Search attempt {attempt + 1} failed: {exc}")
