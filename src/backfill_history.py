@@ -7,6 +7,7 @@ from datetime import datetime
 import requests
 
 from fetch_papers import (
+    DEEPSEEK_API_KEY,
     JOURNALS,
     RSS_FEEDS,
     ai_filter_papers,
@@ -73,6 +74,11 @@ def fetch_journal_history(journals, start_date, end_date):
 
 
 def main():
+    if not DEEPSEEK_API_KEY:
+        raise RuntimeError(
+            "DEEPSEEK_API_KEY is required for history backfill; keyword fallback is disabled"
+        )
+
     if os.path.exists(MARKER_PATH):
         print("History backfill already completed; fixed data will not be reprocessed.")
         return
