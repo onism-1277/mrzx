@@ -215,27 +215,50 @@ def fetch_rss_papers():
     return papers
 
 
+def infer_issue_date(root):
+    """Infer a publication date from a Chinese journal issue title.
+
+    The Wildlife Journal RSS feed omits item-level pubDate values but exposes
+    titles such as "野生动物学报 2026年第3期". The journal is bimonthly, so issue
+    1-6 maps to February, April, June, August, October, and December.
+    """
+    channel_title = root.findtext("./channel/title", default="")
+    match = re.search(r"(20\d{2})\s*年第\s*(\d+)\s*期", channel_title)
+    if not match:
+        return ""
+
+    year, issue = int(match.group(1)), int(match.group(2))
+    if not 1 <= issue <= 6:
+        return ""
+    return f"{year}-{issue * 2:02d}-01"
+
+
 def parse_rss(xml_text, journal_name):
     papers = []
     root = ET.fromstring(xml_text)
+    issue_date = infer_issue_date(root)
     for item in root.findall(".//item"):
         try:
-            title = item.find("title").text if item.find("title") is not None else ""
-            link = item.find("link").text if item.find("link") is not None else ""
-            pub_date_elem = item.find("pubDate")
-            pub_date = ""
-            if pub_date_elem is not None and pub_date_elem.text:
-                pub_date = pub_date_elem.text.strip()
+            title = item.findtext("title", default="")
+            link = item.findtext("link", default="")
+            pub_date = item.findtext("pubDate", default="").strip()
+            if pub_date:
                 try:
-                    pub_date = datetime.strptime(pub_date, "%a, %d %b %Y %H:%M:%S %Z").strftime("%Y-%m-%d")
-                except:
+                    pub_date = datetime.strptime(
+                        pub_date, "%a, %d %b %Y %H:%M:%S %Z"
+                    ).strftime("%Y-%m-%d")
+                except (TypeError, ValueError):
                     try:
-                        pub_date = datetime.strptime(pub_date[:11], "%a, %d %b %Y").strftime("%Y-%m-%d")
-                    except:
+                        pub_date = datetime.strptime(
+                            pub_date[:11], "%a, %d %b %Y"
+                        ).strftime("%Y-%m-%d")
+                    except (TypeError, ValueError):
                         pub_date = ""
+            if not pub_date:
+                pub_date = issue_date
 
-            description = item.find("description").text if item.find("description") is not None else ""
-            abstract = re.sub(r'<[^>]+>', '', description)[:500]
+            description = item.findtext("description", default="")
+            abstract = re.sub(r"<[^>]+>", "", description)[:500]
 
             papers.append({
                 "title": title.strip(),

@@ -79,22 +79,38 @@ def main():
             "DEEPSEEK_API_KEY is required for history backfill; keyword fallback is disabled"
         )
 
-    if os.path.exists(MARKER_PATH):
-        print("History backfill already completed; fixed data will not be reprocessed.")
-        return
+    marker_exists = os.path.exists(MARKER_PATH)
 
     with open(OUTPUT_PATH, "r", encoding="utf-8") as file:
         existing = json.load(file)
 
     today = datetime.now().strftime("%Y-%m-%d")
+    has_dated_rss_papers = any(
+        paper.get("journal") == "野生动物学报"
+        and paper.get("date")
+        and HISTORY_START_DATE <= paper["date"] <= today
+        for paper in existing
+    )
+    if marker_exists and has_dated_rss_papers:
+        print("History backfill already completed; fixed data will not be reprocessed.")
+        return
+    if marker_exists:
+        print("History marker exists, but dated RSS papers are missing; repairing RSS history only.")
+
     existing_journals = {
         paper.get("journal")
         for paper in existing
         if paper.get("date") and HISTORY_START_DATE <= paper["date"] <= today
     }
-    missing_journals = [journal for journal in JOURNALS if journal not in existing_journals]
+    missing_journals = (
+        [] if marker_exists
+        else [journal for journal in JOURNALS if journal not in existing_journals]
+    )
     print(f"Existing history journals: {len(existing_journals)}")
-    print(f"Missing PubMed journals to backfill: {len(missing_journals)}")
+    if missing_journals:
+        print(f"Missing PubMed journals to backfill: {len(missing_journals)}")
+    else:
+        print("Skipping PubMed history; only the missing RSS journal will be repaired.")
 
     new_papers = fetch_journal_history(missing_journals, HISTORY_START_DATE, today)
     print(f"Raw PubMed papers collected for missing journals: {len(new_papers)}")
@@ -120,6 +136,9 @@ def main():
         if paper.get("pmid") not in seen:
             seen.add(paper.get("pmid"))
             unique.append(paper)
+
+    if marker_exists and not unique:
+        raise RuntimeError("RSS history repair found no new papers; completion marker was left unchanged")
 
     unique = translate_papers(unique)
     unique = summarize_papers(unique)
