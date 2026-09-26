@@ -1,5 +1,19 @@
 [
   {
+    "title": "Observation and exploration widen the menu.",
+    "title_cn": "观察与探索拓宽了选择范围。",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队通过观察与试错学习相结合的方法，在猩猩觅食行为的基础上，发现猩猩通过将观察与试错学习相结合来拓展觅食技能，获得了相关研究进展，为理解灵长类动物觅食学习机制提供了参考。",
+    "journal": "Science",
+    "date": "2026-09-24",
+    "authors": "Truskanov N",
+    "abstract": "Orangutans expand their foraging skills by combining observation with trial-and-error learning.",
+    "doi": "10.1126/science.ael7040",
+    "url": "https://doi.org/10.1126/science.ael7040",
+    "pmid": "42784703",
+    "category": "zoology"
+  },
+  {
     "title": "Co-option of a tendon-associated osteogenic program drives the evolutionary plasticity of intermuscular bones in teleosts.",
     "title_cn": "肌腱相关成骨程序的共选驱动了真骨鱼类肌间骨的进化可塑性。",
     "title_cn_summary": "",
