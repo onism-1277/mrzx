@@ -1,5 +1,19 @@
 [
   {
+    "title": "Canopy functional composition as an indicator of bird traits, taxonomy, and vulnerability in tropical Peruvian forests.",
+    "title_cn": "冠层功能组成作为热带秘鲁森林中鸟类特征、分类学及脆弱性的指标",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队通过线性模型选择和方差分解，在热带秘鲁森林的基础上，发现冠层功能组成可作为鸟类特征、分类学及脆弱性的指标，获得了森林功能多样性与动物特征之间关联的相关研究进展，为热带森林生物多样性保护提供了相关研究价值。",
+    "journal": "Nat Commun",
+    "date": "2026-09-25",
+    "authors": "Olah G, Evans MJ, Asner GP",
+    "abstract": "Tropical forests harbour exceptional biodiversity, yet anthropogenic change is rapidly altering forest composition and structure in ways that shape species' ecological strategies and persistence. While advances in remote sensing now allow detailed characterisation of canopy function, links between forest functional diversity and animal traits remain poorly understood. Here, using linear model selection and variance partitioning, we test whether canopy functional groups (clusters of forest types ",
+    "doi": "10.1038/s41467-026-77135-6",
+    "url": "https://doi.org/10.1038/s41467-026-77135-6",
+    "pmid": "42791245",
+    "category": "zoology"
+  },
+  {
     "title": "Observation and exploration widen the menu.",
     "title_cn": "观察与探索拓宽了选择范围。",
     "title_cn_summary": "",
