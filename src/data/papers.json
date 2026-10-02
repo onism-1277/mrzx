@@ -1,5 +1,33 @@
 [
   {
+    "title": "Insights into longevity and virus-driven adaptation from Myotis bat genomes.",
+    "title_cn": "从鼠耳蝠基因组洞察长寿和病毒驱动的适应性。",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队通过论文报道的方法，在鼠耳蝠基因组的基础上，发现鼠耳蝠属作为最大蝙蝠支系之一，在哺乳动物中表现出极端寿命差异，并具有病毒耐受和免疫防御的独特适应性，获得了相关研究进展，为相关研究提供了相应价值。",
+    "journal": "Nature",
+    "date": "2026-10-01",
+    "authors": "Vazquez JM, Lauterbur ME, Mottaghinia S et al.",
+    "abstract": "The genus Myotis is one of the largest clades of bats, and it exhibits some of the most extreme variation in lifespans among mammals, alongside unique adaptations to viral tolerance and immune defence",
+    "doi": "10.1038/s41586-026-10932-7",
+    "url": "https://doi.org/10.1038/s41586-026-10932-7",
+    "pmid": "42649300",
+    "category": "zoology"
+  },
+  {
+    "title": "Reference genomes and fossils revise bat family phylogeny and biogeography.",
+    "title_cn": "参考基因组和化石修订了蝙蝠科的系统发育和生物地理学。",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队通过参考基因组和化石证据，在蝙蝠科系统发育与生物地理学研究的基础上，修订了蝙蝠科的系统发育和生物地理学认识，获得了相关研究进展，为理解蝙蝠独特飞行、回声定位及抗病等性状的演化提供了参考。",
+    "journal": "Nature",
+    "date": "2026-10-01",
+    "authors": "Morales AE, Liang Y, Thomas WR et al.",
+    "abstract": "Bats are extraordinary among mammals, having uniquely evolved powered flight and laryngeal echolocation, along with disease resistance, extended healthspans and the ability to hibernate",
+    "doi": "10.1038/s41586-026-11007-3",
+    "url": "https://doi.org/10.1038/s41586-026-11007-3",
+    "pmid": "42778608",
+    "category": "zoology"
+  },
+  {
     "title": "Prevalence of traded bird species in key biodiversity areas.",
     "title_cn": "关键生物多样性区域中贸易鸟类物种的流行率。",
     "title_cn_summary": "",
