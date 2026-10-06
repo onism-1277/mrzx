@@ -1,5 +1,19 @@
 [
   {
+    "title": "Multiscale structural evolution of proline-rich protein genes shapes primate salivary defenses.",
+    "title_cn": "富含脯氨酸蛋白基因的多尺度结构演化塑造了灵长类唾液防御。",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队通过整合长读长基因组组装与比较基因组学、系统发育、转录组学和食性数据，在27种灵长类唾液富含脯氨酸蛋白基因家族的基础上，发现富含脯氨酸蛋白基因的多尺度结构演化塑造了灵长类唾液防御，获得了该基因家族演化特征的相关进展，为理解灵长类食性适应与口腔防御提供了参考。",
+    "journal": "Mol Biol Evol",
+    "date": "2026-10-03",
+    "authors": "Aguado WD, Karageorgiou C, Kassem S et al.",
+    "abstract": "Saliva forms the first biochemical interface with the environment, mediating dietary exposure and oral defense. Proline-rich proteins in saliva protect plant-eating mammals from the harmful effects of consuming tannins. Yet the evolution of the genes encoding these proteins remains poorly resolved. Here, integrating long-read genome assemblies with comparative genomics, phylogenetics, transcriptomics, and dietary data, we investigate the salivary proline-rich protein gene family across 27 primat",
+    "doi": "10.1093/molbev/msag224",
+    "url": "https://doi.org/10.1093/molbev/msag224",
+    "pmid": "42671077",
+    "category": "zoology"
+  },
+  {
     "title": "Insights into longevity and virus-driven adaptation from Myotis bat genomes.",
     "title_cn": "从鼠耳蝠基因组洞察长寿和病毒驱动的适应性。",
     "title_cn_summary": "",
