@@ -1,5 +1,33 @@
 [
   {
+    "title": "A supergene and genomic mosaicism are associated with phenotypic evolution in Galápagos tree finches.",
+    "title_cn": "一个超基因和基因组嵌合现象与加拉帕戈斯树雀的表型演化相关。",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队通过全基因组分析与形态学数据相结合的方法，在加拉帕戈斯树雀（Camarhynchus属）的基础上，发现一个超基因和基因组嵌合现象与该类群表型演化相关，获得了关于其起源与多样化的研究进展，为理解适应性辐射中表型新颖性与物种多样性的起源提供了相关参考。",
+    "journal": "Nat Commun",
+    "date": "2026-10-11",
+    "authors": "Sebastianelli Arbelaez M, Enbody ED, Rubin CJ et al.",
+    "abstract": "Adaptive radiations provide powerful models to study the origins of phenotypic novelty and species diversity. Darwin's finches constitute a classic example of adaptive radiation, in which beak morphology is a key trait related to fitness. Here, we focus on Camarhynchus tree finches by analyzing whole genomes in combination with morphological data to revisit long-standing questions regarding their origins raised before genetic evidence became available. Camarhynchus diversified over the last 100,",
+    "doi": "10.1038/s41467-026-78507-8",
+    "url": "https://doi.org/10.1038/s41467-026-78507-8",
+    "pmid": "42860418",
+    "category": "genetics"
+  },
+  {
+    "title": "Coordinated transformations of the labyrinth and occiput during the dinosaur-bird transition.",
+    "title_cn": "恐龙向鸟类过渡过程中迷路与枕骨的协同转变。",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队通过论文报道的方法，在146种现生及近期灭绝的冠鸟类基础上，发现恐龙向鸟类过渡中迷路与枕骨存在协同转变，获得了相关研究进展，为理解脑颅结构对半规管形态的影响提供了相关研究参考。",
+    "journal": "Proc Natl Acad Sci U S A",
+    "date": "2026-10-20",
+    "authors": "Navalón G, Evers SW, Hughes E et al.",
+    "abstract": "Evolutionary shape changes of the vertebrate semicircular canals (SCCs) are often ascribed to evolutionary transitions in locomotion, including the origin of flight during the dinosaur-bird transition. However, the potential for transformations of braincase architecture to influence SCC shape independent of sensory-functional adaptation has generally been overlooked. We evaluate the influence of both factors using a large dataset of 146 living and recently extinct crown birds, including taxa rep",
+    "doi": "10.1073/pnas.2612503123",
+    "url": "https://doi.org/10.1073/pnas.2612503123",
+    "pmid": "42863076",
+    "category": "zoology"
+  },
+  {
     "title": "Rapid protamine evolution suppresses meiotic drive in",
     "title_cn": "快速鱼精蛋白进化抑制减数分裂驱动",
     "title_cn_summary": "",
