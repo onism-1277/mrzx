@@ -1,5 +1,33 @@
 [
   {
+    "title": "Human targeting of morphologically unique fishes amplifies the risk of functional erosion.",
+    "title_cn": "人类对形态独特鱼类的定向捕捞加剧了功能侵蚀的风险。",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队通过论文报道的方法，在全球淡水鱼类形态多样性研究基础上，发现人类利用约四分之一（26%）的淡水鱼类物种，这些物种占据全球鱼类形态多样性谱系的近一半（45.2%），且被利用物种具有独特的性状组合并因利用方式而异，获得了相关研究进展，为评估人类利用对鱼类功能多样性侵蚀的风险提供了参考。",
+    "journal": "Nat Commun",
+    "date": "2026-10-19",
+    "authors": "Bouchet P, Brosse S, Toussaint A",
+    "abstract": "Human societies are drawing on wild species for food, fuel, medicines, and recreation. Yet, it remains unclear whether different types of human use target species with common or unique ecological roles. Here we show that humans use a fourth (26%) of the freshwater fish species and these species occupy almost half (45.2%) of the global spectrum of fish morphological diversity. Yet, used species harbour unique trait combinations, that differ according to the way humans use the species such as fish",
+    "doi": "10.1038/s41467-026-78568-9",
+    "url": "https://doi.org/10.1038/s41467-026-78568-9",
+    "pmid": "42897169",
+    "category": "ecology"
+  },
+  {
+    "title": "Drivers of the likelihood of evolutionary rescue in response to novel infectious diseases.",
+    "title_cn": "新型传染病下进化拯救可能性的驱动因素。",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队通过论文报道的方法，在相关研究对象的基础上，发现新型传染病下宿主可能通过适应病原体实现种群恢复即进化拯救，获得了相关研究进展，为相关研究提供了相应价值。",
+    "journal": "Proc Natl Acad Sci U S A",
+    "date": "2026-10-20",
+    "authors": "Balstad LJ, Baskett ML",
+    "abstract": "The introduction of novel infectious diseases has caused significant declines in many species, and in some cases, local extinction. Simultaneously, hosts might adapt to these novel pathogens, allowing population recovery, an example of evolutionary rescue (ER). Novel infectious diseases differ from sudden, abiotic stressors in that disease only impacts a subset of individuals within the population and individuals might be affected for a finite period. Whether ER occurs in an infectious disease c",
+    "doi": "10.1073/pnas.2614169123",
+    "url": "https://doi.org/10.1073/pnas.2614169123",
+    "pmid": "42879480",
+    "category": "ecology"
+  },
+  {
     "title": "Survival and divergence of Arctic endemic cod species during 50,000 years of climate change.",
     "title_cn": "北极特有鳕鱼物种在5万年气候变化中的生存与分化。",
     "title_cn_summary": "",
