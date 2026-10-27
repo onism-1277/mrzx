@@ -1,5 +1,33 @@
 [
   {
+    "title": "Sources and sinks: Geoclimatic dynamics shaped the assembly of endemic fauna in the world's Third Pole.",
+    "title_cn": "源与汇：地理气候动态塑造了世界第三极特有动物群的组装。",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队通过整合五大类群逾2万种的时间校准系统发育树，在青藏高原陆生动物群组装研究的基础上，重建了527种特有陆生动物演化历史，发现地理气候动态塑造了世界第三极特有动物群的源与汇组装过程，获得了多类群综合视角下的动物群组装认识，为理解青藏高原生物多样性形成提供了相关价值。",
+    "journal": "Proc Natl Acad Sci U S A",
+    "date": "2026-11-03",
+    "authors": "Jiang D, Li ML, Ren JL et al.",
+    "abstract": "The Qinghai-Tibet Plateau (QTP), a biodiversity hotspot shaped by tectonic and climatic forces, has seen significant progress in understanding its floristic origins. However, a comprehensive, multitaxon perspective on how its terrestrial fauna assembled remains lacking. Here we integrate time-calibrated phylogenies of over 20,000 species from five major groups (invertebrates, amphibians, reptiles, birds, and mammals), to reconstruct the evolutionary history of 527 terrestrial animal species ende",
+    "doi": "10.1073/pnas.2602323123",
+    "url": "https://doi.org/10.1073/pnas.2602323123",
+    "pmid": "42932642",
+    "category": "zoology"
+  },
+  {
+    "title": "Spatial reorganization during post-collapse population growth suggests conspecific attraction in baleen whale nursing grounds.",
+    "title_cn": "崩溃后种群增长期间的空间重组表明须鲸育幼场存在同种吸引现象。",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队通过论文报道的方法，在须鲸育幼场相关研究对象的基础上，发现崩溃后种群增长期间出现空间重组，提示须鲸育幼场可能存在同种吸引现象，获得了相关研究进展，为理解种群恢复过程中的栖息地利用变化提供了相关研究价值。",
+    "journal": "Proc Natl Acad Sci U S A",
+    "date": "2026-11-03",
+    "authors": "Grundlehner A, Andrews-Goff V, Double MC et al.",
+    "abstract": "Habitat use is strongly interlinked with population dynamics and plays an important role in population regulation. Animals frequently modify their habitat use behavior in response to major changes in population density. This is well studied in contexts wherein resources are limiting: for example, when changes in habitat use behavior reduce pressure from resource limitations. Situations wherein resource limitations are relaxed, such as upon recovery from severe declines, remain poorly studied. He",
+    "doi": "10.1073/pnas.2602745123",
+    "url": "https://doi.org/10.1073/pnas.2602745123",
+    "pmid": "42932647",
+    "category": "zoology"
+  },
+  {
     "title": "Climatic niche conservatism shapes the macroevolution, extinction, and survivorship of crocodile-line archosaurs.",
     "title_cn": "气候生态位保守性塑造了鳄形初龙类的宏观演化、灭绝与存活。",
     "title_cn_summary": "",
