@@ -1,5 +1,19 @@
 [
   {
+    "title": "Viral metagenomics reveals heterogeneity in mammalian virus hosting, sharing, and spillover.",
+    "title_cn": "病毒宏基因组学揭示哺乳动物病毒宿主、共享与溢出的异质性。",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队通过病毒宏基因组学方法，在涵盖4685份宏基因组数据的综合数据库基础上，分析了哺乳动物病毒宿主、共享与溢出格局，发现病毒宿主、共享与溢出存在异质性，获得了相关研究进展，为理解溢出风险是否由特定类群驱动或仅反映哺乳动物物种丰富度提供了参考。",
+    "journal": "Proc Natl Acad Sci U S A",
+    "date": "2026-11-03",
+    "authors": "Wang Y, Qu G, Huang ZYX et al.",
+    "abstract": "Zoonotic viruses originating from mammals pose a persistent threat to global health. While rodents and bats are often considered \"special reservoirs,\" it is debated if spillover risk is driven by specific taxa or merely reflects mammalian species richness. However, most tests have focused on published host-virus association datasets, which can reflect systematic biases in host and virus sampling effort. To address this limitation, we analyzed a comprehensive repository of 4,685 metagenomic datas",
+    "doi": "10.1073/pnas.2610672123",
+    "url": "https://doi.org/10.1073/pnas.2610672123",
+    "pmid": "42945246",
+    "category": "zoology"
+  },
+  {
     "title": "Sources and sinks: Geoclimatic dynamics shaped the assembly of endemic fauna in the world's Third Pole.",
     "title_cn": "源与汇：地理气候动态塑造了世界第三极特有动物群的组装。",
     "title_cn_summary": "",
