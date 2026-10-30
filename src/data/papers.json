@@ -1,5 +1,47 @@
 [
   {
+    "title": "Genomic erosion across avifauna in a biodiversity hotspot sounds a conservation alarm.",
+    "title_cn": "生物多样性热点地区鸟类基因组侵蚀敲响保护警钟。",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队通过比较中国西南部高黎贡山生物多样性热点地区62种鸣禽的历史基因组与现代基因组，量化遗传多样性变化，发现基因组平均丧失约43%至49%，且常见物种受影响尤为严重，据此认为这种丧失主要由栖息地相关因素驱动，为生物多样性热点地区鸟类保护提供了警示性依据。",
+    "journal": "Science",
+    "date": "2026-10-29",
+    "authors": "Liu R, Liu Y, Wu F et al.",
+    "abstract": "Loss of biodiversity can have a hidden dimension-the cryptic erosion of genetic diversity even in the face of apparent species resilience. We quantified changes in genetic diversity by comparing historical and modern genomes of 62 songbird species from the Gaoligong Mountains, a biodiversity hotspot in southwestern China. We identified genomic loss averaging between 43 and 49%; and, unexpectedly, common species were disproportionately affected. We argue that this loss was driven primarily by hab",
+    "doi": "10.1126/science.aef3063",
+    "url": "https://doi.org/10.1126/science.aef3063",
+    "pmid": "42956122",
+    "category": "zoology"
+  },
+  {
+    "title": "Pervasive patterns in bird songs resemble those in human speech and song and are independent of vocal learning.",
+    "title_cn": "鸟类鸣唱中的普遍模式与人类语言和歌曲中的模式相似，且这些模式独立于发声学习。",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队通过分析涵盖367种鸟类（约5900首鸣唱中的逾74500个发声单元）和52种人类语言（逾800个语音或歌曲短语中的逾15000个单元）的全球语料库，在发声学习鸟类（鸣禽和蜂鸟）及相关非学习鸟类（亚鸣禽和夜鹰）的基础上，发现鸟类鸣唱中存在与人类语言和歌曲相似的普遍模式，且这些模式独立于发声学习，为相关研究提供了相应进展。",
+    "journal": "Science",
+    "date": "2026-10-29",
+    "authors": "James LS, Oudyk K, Pescaru MI et al.",
+    "abstract": "Bird songs are often described as analogs to human speech and songs, but expansive comparisons are necessary to determine analogy and mechanistic substrates. By analyzing global corpora consisting of 367 bird species (>74,500 vocal elements from ~5900 songs) within two clades of vocal learners (oscines and hummingbirds) and related nonlearners (suboscines and nightjars) and 52 human languages (>15,000 elements in >800 speech or song phrases), we revealed common patterns in bird songs that resemb",
+    "doi": "10.1126/science.adr9983",
+    "url": "https://doi.org/10.1126/science.adr9983",
+    "pmid": "42956123",
+    "category": "zoology"
+  },
+  {
+    "title": "The global geography of threats to freshwater biodiversity.",
+    "title_cn": "全球淡水生物多样性威胁的地理格局。",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队通过以物种为中心的空间评估方法，在21,490种淡水两栖类、鱼类、哺乳类、蜻蜓和爬行动物基础上，绘制了45种威胁的影响分布，发现高度开发和水资源管理强度较高地区的淡水物种受威胁影响更为集中，获得了全球淡水生物多样性威胁地理格局的相关研究进展，为相关研究与淡水生物多样性保护提供了参考价值。",
+    "journal": "Science",
+    "date": "2026-10-29",
+    "authors": "Brabant C, Pollock L, Geldmann J et al.",
+    "abstract": "Human activities are eroding biodiversity, especially in freshwater systems. Despite major advances in quantifying species vulnerability and threats, we still lack a crucial understanding of where threats are affecting freshwater species globally. Here, we produced a species-centered spatial assessment of threats, mapping the impact of 45 threats across 21,490 freshwater species of amphibians, fish, mammals, odonates, and reptiles. We found that species in highly developed and water-managed regi",
+    "doi": "10.1126/science.aeb7910",
+    "url": "https://doi.org/10.1126/science.aeb7910",
+    "pmid": "42956142",
+    "category": "zoology"
+  },
+  {
     "title": "Melanosome evolution shaped sensory biology and terrestrial adaptations in early aquatic vertebrates.",
     "title_cn": "黑素体演化塑造了早期水生脊椎动物的感觉生物学与陆生适应。",
     "title_cn_summary": "",
