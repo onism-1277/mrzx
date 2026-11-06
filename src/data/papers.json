@@ -1,5 +1,47 @@
 [
   {
+    "title": "Substantial Neotropical bat diversity likely remains undescribed and vulnerable to extinction.",
+    "title_cn": "新热带界蝙蝠的多样性可能仍有大量未被描述，且面临灭绝风险。",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队通过整合分子物种界定、系统发育推断、生态位建模和空间保护分析，在新热带界蝙蝠多样性的基础上，识别出95个可能尚未被描述的新热带界蝙蝠谱系，发现大量未被描述的多样性可能面临灭绝风险，获得了相关研究进展，为 urgent conservation prioritization 提供了相应研究价值。",
+    "journal": "Nat Commun",
+    "date": "2026-11-03",
+    "authors": "Esquivel DA, Penagos A, Feijó A et al.",
+    "abstract": "Numerous undescribed species face extinction before formal scientific recognition. Despite research advances, the exceptional bat diversity of the Neotropics remains overlooked, with accelerating habitat loss threatening unrecognized lineages with silent extinction, requiring urgent conservation prioritization. Here, we integrate molecular species delimitation, phylogenetic inference, ecological niche modelling, and spatial conservation analyses to identify 95 Neotropical bat lineages that may r",
+    "doi": "10.1038/s41467-026-78393-0",
+    "url": "https://doi.org/10.1038/s41467-026-78393-0",
+    "pmid": "42977734",
+    "category": "ecology"
+  },
+  {
+    "title": "Codfishes survived essential gene loss by functionally co-opting freshwater ovulatory pathways to marine egg hydration.",
+    "title_cn": "鳕鱼通过功能性地利用淡水排卵途径来实现海洋卵的水合，从而在必需基因丢失中存活下来。",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队以鳕鱼为研究对象，发现所有鳕形目鱼类均丢失了胚胎存活所必需的基因，并揭示其通过功能性地利用淡水排卵途径实现海洋卵水合，从而在必需基因丢失中存活，获得了相关研究进展，为理解必需基因丢失后的适应性演化机制提供了参考。",
+    "journal": "Proc Natl Acad Sci U S A",
+    "date": "2026-11-10",
+    "authors": "Rey-Alfonso Á, Yilmaz O, Chauvigné F et al.",
+    "abstract": "Adaptive evolution associated with dispensable gene loss is widespread in the animal kingdom. However, loss of genes essential for embryonic survival and the mechanisms that evolved to bypass negative selection and extinction are less well known. Here, we show that all Gadiformes, an ecologically dominant order of codfishes, lost the",
+    "doi": "10.1073/pnas.2626713123",
+    "url": "https://doi.org/10.1073/pnas.2626713123",
+    "pmid": "42981029",
+    "category": "zoology"
+  },
+  {
+    "title": "Echoes of the Anthropocene: Noise pollution as a global threat.",
+    "title_cn": "人类世的回声：噪音污染成为全球性威胁。",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队通过系统综述与系统发育控制的荟萃分析，在涵盖六大洲177种水生和陆生物种的214项实验研究基础上，发现人为噪音改变了80%受研究物种至少一项生理、发育或行为特征，并伴随适合度与丰度下降及捕食者—猎物相互作用受扰，获得了噪音污染跨生物层次影响的定量证据，为评估人为噪音的生态风险提供了参考。",
+    "journal": "Science",
+    "date": "2026-11-05",
+    "authors": "Kunc HP, Schmidt R",
+    "abstract": "Anthropogenic noise is a rapidly expanding global pollutant, but its effects across biological levels from individuals to ecosystems remain unquantified. We conducted phylogenetically controlled meta-analyses of 214 experimental studies on 177 aquatic and terrestrial species with ranges that span six continents. Noise altered at least one physiological, developmental, or behavioral trait in 80% of species studied, with declines in fitness and abundance and disruptions of predator-prey interactio",
+    "doi": "10.1126/science.adu9593",
+    "url": "https://doi.org/10.1126/science.adu9593",
+    "pmid": "42986958",
+    "category": "ecology"
+  },
+  {
     "title": "Phylogenomics of Cypriniformes, the most diverse order of freshwater fishes: consensus, challenges, and limitations.",
     "title_cn": "鲤形目的系统发育基因组学：淡水鱼类中多样性最丰富的目：共识、挑战与局限。",
     "title_cn_summary": "",
