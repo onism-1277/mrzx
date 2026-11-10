@@ -1,5 +1,33 @@
 [
   {
+    "title": "Coevolution of social network structure and life history in toothed whales.",
+    "title_cn": "齿鲸社会网络结构与生活史的共同演化",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队通过整合现有社会网络分析，在齿鲸社会结构比较研究的基础上，比较了齿鲸的社会网络特征，发现并验证了模块化与社会分化等社会网络结构与生活史的共同演化关系，获得了相关研究进展，为理解复杂哺乳动物社会的演化提供了参考。",
+    "journal": "Proc Natl Acad Sci U S A",
+    "date": "2026-11-17",
+    "authors": "Walmsley SF, Ringen E, Gero S et al.",
+    "abstract": "Toothed whales offer a 34 My-long natural experiment for the evolution of complex mammalian societies. However, quantitative comparative analyses of social structure in these species are lacking. Here, we draw on existing social network analyses to compare social structure across toothed whales. We consider published measures of two social network traits across all toothed whales: modularity ([Formula: see text]), which captures divisions or \"cliques\" in a social community, and social differenti",
+    "doi": "10.1073/pnas.2631011123",
+    "url": "https://doi.org/10.1073/pnas.2631011123",
+    "pmid": "43002679",
+    "category": "zoology"
+  },
+  {
+    "title": "A signal convention in natural chimpanzee communication.",
+    "title_cn": "黑猩猩自然交流中的一个信号惯例。",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队通过准实验设计，在91只年龄0至55岁、来自八个野生与圈养黑猩猩群体的基础上，研究了黑猩猩无声叫声（如声学“吐舌声”）的使用差异，发现黑猩猩自然交流中存在一种信号惯例，获得了相关研究进展，为探究动物是否具有基于意义的交流惯例提供了参考。",
+    "journal": "Proc Natl Acad Sci U S A",
+    "date": "2026-11-24",
+    "authors": "Valet A, Moore R, Bortolato T et al.",
+    "abstract": "Human language relies on conventional signals that are arbitrary, stable, and socially transmitted. Whether other animals exhibit meaning-based communicative conventions is virtually unknown. Using a quasi-experimental design, we investigated this in chimpanzee unvoiced calls (UCs), such as acoustic raspberries, known to show usage variation. We collected audio and contextual data in 91 chimpanzees (0 to 55 y), across eight wild and captive groups that differed in the presence or absence of adul",
+    "doi": "10.1073/pnas.2606837123",
+    "url": "https://doi.org/10.1073/pnas.2606837123",
+    "pmid": "43002691",
+    "category": "zoology"
+  },
+  {
     "title": "Evolutionary dynamics of collective behavior across the tree of ray-finned fishes.",
     "title_cn": "辐鳍鱼树中集体行为的演化动态。",
     "title_cn_summary": "",
