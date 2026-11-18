@@ -1,5 +1,33 @@
 [
   {
+    "title": "Deep learning reveals persistent individual signatures in bat echolocation calls of the greater leaf-nosed bat.",
+    "title_cn": "深度学习揭示大叶鼻蝠回声定位叫声中持续存在的个体特征。",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队通过深度学习方法，在大叶鼻蝠回声定位叫声的基础上，发现深度学习能够克服传统方法的局限，揭示其叫声中持续存在的个体特征，获得了基于发声进行声学个体识别的相关研究进展，为利用快速变化的回声定位叫声开展个体识别提供了相应价值。",
+    "journal": "Zool Res",
+    "date": "2026-11-18",
+    "authors": "Li AQ, Huang WT, Xie XY et al.",
+    "abstract": "Intraspecific variation is a prerequisite for natural selection and can manifest in various phenotypic traits, including vocal signals. However, classifying individuals based on their vocalizations, or acoustic individual identification (AIID), remains a significant challenge. This is particularly true for species that use rapidly varying echolocation calls for orientation. Here, we demonstrate that deep learning can overcome the limitations of traditional methods and reveal persistent individua",
+    "doi": "10.24272/j.issn.2095-8137.2025.642",
+    "url": "https://doi.org/10.24272/j.issn.2095-8137.2025.642",
+    "pmid": "42864600",
+    "category": "zoology"
+  },
+  {
+    "title": "Osteoglossid pangenome reveals ancient teleost evolution and population dynamics.",
+    "title_cn": "骨舌鱼泛基因组揭示古老真骨鱼类的演化与种群动态。",
+    "title_cn_summary": "",
+    "ai_summary": "该研究团队通过整合测序策略，在骨舌鱼科这一古老淡水鱼类 lineage 的基础上，获得了巨骨舌鱼端粒到端粒（T2T）染色体水平基因组组装，报道了骨舌鱼泛基因组相关研究进展，为理解早期真骨鱼类演化与种群动态提供了参考。",
+    "journal": "Zool Res",
+    "date": "2026-11-18",
+    "authors": "Mu XD, Huan RJ, Yang YX et al.",
+    "abstract": "Osteoglossidae, one of the most ancient freshwater fish lineages exhibiting transcontinental disjunction, offers important insights into early teleost evolution and historical biogeography. Using integrated sequencing strategies, we report two telomere-to-telomere (T2T) chromosome-level genome assemblies for pirarucu (  骨舌鱼科（Osteoglossidae）是最古老的淡水鱼类之一，呈现出跨大陆间断分布的特点，为研究早期硬骨鱼的演化和生物地理学提供了重要线索。本研究利用多种测序策略，成功组装了巨骨舌鱼（",
+    "doi": "10.24272/j.issn.2095-8137.2026.191",
+    "url": "https://doi.org/10.24272/j.issn.2095-8137.2026.191",
+    "pmid": "43036284",
+    "category": "ecology"
+  },
+  {
     "title": "Vessel noise pollution offsets marine mammal energy budgets.",
     "title_cn": "船舶噪声污染抵消海洋哺乳动物的能量预算。",
     "title_cn_summary": "",
